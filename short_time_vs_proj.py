@@ -132,7 +132,7 @@ def get_ref_prices(option_params: dict, ts_params: dict):
         S0=option_params["S0"], discount=disc_curve, divDiscount=div_disc
     )
     model = TemperedStable(forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
-    proj_pricer = ProjEuropeanPricer(model=model, N=2**16, order=3)
+    # proj_pricer = ProjEuropeanPricer(model=model, N=2**16, order=3)
     # proj_pricer = HilbertEuropeanPricer(model=model, N=2**15, Nh=2**7)
     proj_pricer = LewisEuropeanPricer(model=model)
     proj_prices = []
@@ -153,7 +153,6 @@ def get_mellin_prices(option_params: dict, ts_params: dict):
         _type_: _description_
     """
     ts_pricer = TemperedStablePricer(**ts_params)
-
     mellin_price = ts_pricer.price(**option_params, N=25)
     return mellin_price
 
