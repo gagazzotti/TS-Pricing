@@ -24,7 +24,7 @@ def main():
         beta_m=0.5 - np.pi / 100,
         lambda_m=0.4,
     )
-    n_start, n_end = 8, 22
+    n_start, n_end = 9, 22
     range_n = list(range(n_start, n_end))
     strike = 1.5
     ttm = 1.2
@@ -84,7 +84,7 @@ def convergence(prices: npt.NDArray[np.float64], range_n: list[int]):
         color="green",
         label="Reference Price",
     )
-    plt.ylim(0, 1.5 * proj_price_ref)
+    plt.ylim(0.15, 0.3)
     plt.xlim(min(range_n) - 0.2, max(range_n) + 0.2)
     plt.xlabel(r"$N$")
     plt.ylabel("Call Price")
