@@ -9,7 +9,7 @@ from matplotlib.ticker import FuncFormatter
 
 # import time
 
-from TemperedStablePricers import TemperedStablePricer, OneSidedTemperedStablePricer
+from TemperedStablePricers import OneSidedTemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -20,27 +20,17 @@ def main():
         alpha_p=0.44,
         beta_p=0.1 + np.exp(1) / 10,
         lambda_p=1.4,
-        alpha_m=0.35,
-        beta_m=0.5 - np.pi / 100,
-        lambda_m=0.4,
+        # alpha_m=0.35,
+        # beta_m=0.5 - np.pi / 100,
+        # lambda_m=0.4,
     )
-    ts_p_params = dict(
-        alpha_p=0.44,
-        beta_p=0.1 + np.exp(1) / 10,
-        lambda_p=1.4,
-        #     alpha_m=0.35,
-        #     beta_m=0.5 - np.pi / 100,
-        #     lambda_m=0.4,
-    )
-    n_start, n_end = 1, 26
+    n_start, n_end = 1, 20
     range_n = list(range(n_start, n_end))
     strike = 1.5
     ttm = 1.2
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
-    ts_pricer = TemperedStablePricer(**ts_params)
-    ts_p_pricer = OneSidedTemperedStablePricer(**ts_p_params)
-
-    prices = get_prices(ts_pricer, ts_p_pricer, option_params, range_n)
+    ts_pricer = OneSidedTemperedStablePricer(**ts_params)
+    prices = get_prices(ts_pricer, option_params, range_n)
 
     decreasing_error(prices, range_n)
     convergence(prices, range_n)
@@ -55,23 +45,14 @@ def decreasing_error(prices: npt.NDArray[np.float64], range_n: list[int]):
         n_start (int, optional): n to begin with. Defaults to 10.
         n_end (int, optional): n to end with. Defaults to 16.
     """
-    proj_price_ref = 0.22968572289948497
-    proj_price_ref_p = 0.18769860488552348
+    proj_price_ref = 0.1876986048855046
 
     plt.figure(figsize=(8, 5))
     plt.scatter(
         range_n,
-        np.abs(prices["ts"] - proj_price_ref) / proj_price_ref,
-        color="green",
-        label="Series Price (Double-sided)",
-        marker="x",
-    )
-    plt.scatter(
-        range_n,
-        np.abs(prices["ts_p"] - proj_price_ref_p) / proj_price_ref_p,
-        color="orange",
-        label="Series Price (One-sided)",
-        marker="x",
+        np.abs(prices - proj_price_ref) / proj_price_ref,
+        color="black",
+        label="Series Price",
     )
     plt.grid()
     plt.yscale("log")
@@ -82,8 +63,7 @@ def decreasing_error(prices: npt.NDArray[np.float64], range_n: list[int]):
         FuncFormatter(lambda x, _: f"{int(x)}")
     )  # For the X-axis
     plt.xticks(range_n)
-    plt.legend()
-    plt.savefig("output/decreasing_error.png", dpi=200)
+    plt.savefig("output/decreasing_error_one_sided.png", dpi=200)
     plt.close()
 
 
@@ -96,42 +76,18 @@ def convergence(prices: npt.NDArray[np.float64], range_n: list[int]):
         n_start (int, optional): n to begin with. Defaults to 10.
         n_end (int, optional): n to end with. Defaults to 16.
     """
-    proj_price_ref = 0.22967873723167465
-    proj_price_ref_p = 0.18769876719600298
+    proj_price_ref = 0.18769876719600298
 
     plt.figure(figsize=(8, 5))
-    plt.scatter(
-        range_n,
-        prices["ts"],
-        marker="x",
-        color="green",
-        label="Series Price (Double-sided)",
-    )
-    plt.scatter(
-        range_n,
-        prices["ts_p"],
-        marker="x",
-        color="orange",
-        label="Series Price (One-sided)",
-    )
-
+    plt.scatter(range_n, prices, marker="x", color="black", label="Series Price")
     plt.hlines(
         proj_price_ref,
         min(range_n) - 1,
         max(range_n) + 1,
         color="green",
-        label="Reference Price (Double-sided)",
+        label="Reference Price",
     )
-    plt.hlines(
-        proj_price_ref_p,
-        min(range_n) - 1,
-        max(range_n) + 1,
-        color="orange",
-        label="Reference Price (One-sided)",
-    )
-    # plt.ylim(0.15, 0.3)
-    plt.ylim(0, 1)
-
+    plt.ylim(0.15, 0.3)
     plt.xlim(min(range_n) - 0.2, max(range_n) + 0.2)
     plt.xlabel(r"$N$")
     plt.ylabel("Call Price")
@@ -141,15 +97,12 @@ def convergence(prices: npt.NDArray[np.float64], range_n: list[int]):
         FuncFormatter(lambda x, _: f"{int(x)}")
     )  # For the X-axis
     plt.xticks(range_n)
-    plt.savefig("output/convergence.png", dpi=200)
+    plt.savefig("output/convergence_one_sided.png", dpi=200)
     plt.close()
 
 
 def get_prices(
-    ts_pricer: TemperedStablePricer,
-    ts_p_pricer: OneSidedTemperedStablePricer,
-    option_params: dict,
-    range_n: list[int],
+    ts_pricer: OneSidedTemperedStablePricer, option_params: dict, range_n: list[int]
 ):
     """_summary_
 
@@ -162,12 +115,7 @@ def get_prices(
     Returns:
         prices
     """
-    prices = {}
-    prices["ts"] = np.array([ts_pricer.price(**option_params, N=n) for n in range_n])
-    prices["ts_p"] = np.array(
-        [ts_p_pricer.price(**option_params, N=n) for n in range_n]
-    )
-
+    prices = np.array([ts_pricer.price(**option_params, N=n) for n in range_n])
     return prices
 
 

@@ -2,12 +2,14 @@
 
 import time
 import numpy as np
-import numpy.typing as npt
+
+# import numpy.typing as npt
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+
+# from matplotlib.ticker import FuncFormatter
 import scienceplots
 
-from coefs_ts_series import TemperedStablePricer
+from TemperedStablePricers import TemperedStablePricer
 
 plt.style.use(["science"])
 

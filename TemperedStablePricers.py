@@ -1,9 +1,10 @@
 """Importing modules"""
 
+import time
+import mpmath
 import itertools as it
 import numpy as np
 import numpy.typing as npt
-
 from scipy.special import gamma, factorial, poch
 
 
@@ -189,7 +190,7 @@ class TemperedStablePricer:
         # mettre k en array[None,:] et ttm en array [:,None]
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
         # self.display_params(k)
-        print(N)
+        # print(N)
         # series
         serie1 = self.serie1(k, ttm, N)
         serie2 = self.serie2(k, ttm, N)
@@ -229,4 +230,103 @@ class TemperedStablePricer:
             )
             exp_term = np.exp(k) * (self.lambda_p - 1) ** n3 - self.lambda_p**n3
             serie += (term1) * exp_term
+        return serie
+
+
+class OneSidedTemperedStablePricer:
+    """
+    One sided Tempered Stable pricer
+    """
+
+    def __init__(
+        self,
+        alpha_p: float,
+        beta_p: float,
+        lambda_p: float,
+    ):
+        self.alpha = alpha_p
+        self.beta = beta_p
+        self.lambd = lambda_p
+        self.ap = self.a(alpha_p, beta_p)
+        self.zeta = self.zeta_()
+        self.gamma = self.gamma_()
+
+        return
+
+    def a(self, alpha: float, beta: float) -> float:
+        """a_pm constant in the paper
+
+        Args:
+            alpha (float): alpha
+            beta (float): beta
+
+        Returns:
+            float: apm
+        """
+        return -alpha * gamma(-beta)
+
+    def zeta_(self):
+        """convexity adjustment
+
+        Returns:
+            zeta: convex. adj
+        """
+        zeta_p = (
+            self.alpha
+            * gamma(-self.beta)
+            * ((self.lambd - 1) ** self.beta - self.lambd**self.beta)
+        )
+        return -zeta_p
+
+    def gamma_(self) -> float:
+        """gamma constant in the paper
+
+        Returns:
+            float: gamma
+        """
+        return self.ap * self.lambd**self.beta
+
+    def price(
+        self,
+        S0: float,
+        K: float,
+        r: float,
+        q: float,
+        ttm: float,
+        N: int = 25,
+        # time_verbose=True,
+    ):
+        # mettre k en array[None,:] et ttm en array [:,None]
+        # t0 = time.time()
+        k = np.log(S0 / K) + (r - q + self.zeta) * ttm
+        # print(f"k:{k}")
+        # self.display_params(k)
+        serie = self.serie(k, ttm, N)
+        call_price = K * np.exp((self.gamma - r) * ttm) * serie
+        # if time_verbose:
+        #     print(f"Time: {time.time()-t0}")
+        return call_price
+
+    def serie(
+        self,
+        k: float | npt.NDArray[np.float64],
+        ttm: float | npt.NDArray[np.float64],
+        N: int,
+    ):
+        gamma_inc_np = np.frompyfunc(mpmath.gammainc, 2, 1)
+        serie = 0
+        for n in range(N):
+            coef = (-self.ap * ttm) ** n / (factorial(n) * gamma(-n * self.beta))
+            gam_lam = np.array(gamma_inc_np(-self.beta * n, -k * self.lambd)).astype(
+                float
+            )
+            # print(gamma(-n * self.beta) * gamma_inc_np(-self.beta * n, -k * self.lambd))
+            gam_lam_1 = np.array(
+                gamma_inc_np(-self.beta * n, -k * (self.lambd - 1))
+            ).astype(float)
+            diff = (
+                np.exp(k) * (self.lambd - 1) ** (n * self.beta) * gam_lam_1
+                - self.lambd ** (self.beta * n) * gam_lam
+            )
+            serie += coef * diff
         return serie
