@@ -2,6 +2,7 @@
 
 import time
 import numpy as np
+import tqdm
 
 # import numpy.typing as npt
 import matplotlib.pyplot as plt
@@ -9,7 +10,10 @@ import matplotlib.pyplot as plt
 # from matplotlib.ticker import FuncFormatter
 import scienceplots
 
-from TemperedStablePricers import OneSidedTemperedStablePricer, TemperedStablePricer
+from MellinTemperedStable.TemperedStablePricers import (
+    OneSidedTemperedStablePricer,
+    TemperedStablePricer,
+)
 
 plt.style.use(["science"])
 
@@ -57,8 +61,8 @@ def compute_time_per_option(
         dict: {n**2:comp. time}
     """
     time_per_option = {"ts": {}, "ts_p": {}}
-    for n in range(n_test):
-        print(n)
+    for n in tqdm.tqdm(range(n_test)):
+        # print(n)
         strikes = np.linspace(1.1, 1.5, n)
         ttm = np.linspace(1.1, 1.3, n)
         option_params["K"] = strikes
@@ -103,7 +107,7 @@ def plot_time(times: dict):
         color="orange",
     )
 
-    plt.xlabel(r"$N$")
+    plt.xlabel("Number of options")
     plt.ylabel("Time per option")
     plt.yscale("log")
     plt.grid()
