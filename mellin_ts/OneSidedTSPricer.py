@@ -11,7 +11,9 @@ from scipy.special import gamma, factorial
 
 # pylint: disable=all
 from mellin_ts.upper_gamma.gamma_module import gamma_upper_incomplete as gamma_ui
-from mellin_ts.upper_gamma2.gamma_module import gamma_upper_incomplete as gamma_ui_vect
+from mellin_ts.upper_gamma_vect.gamma_module import (
+    gamma_upper_incomplete as gamma_ui_vect,
+)
 
 
 # pylint: enable=all
