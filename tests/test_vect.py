@@ -9,7 +9,7 @@ from matplotlib.ticker import FuncFormatter
 
 # import time
 
-from mellin_ts.TemperedStablePricers import OneSidedTemperedStablePricer
+from mellin_ts.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -20,15 +20,15 @@ def main():
         alpha_p=0.4,
         beta_p=0.4 + np.exp(1) / 10,
         lambda_p=1.4,
-        # alpha_m=0.05,
-        # beta_m=0.5 - np.pi / 100,
-        # lambda_m=0.4,
+        alpha_m=0.05,
+        beta_m=0.5 - np.pi / 100,
+        lambda_m=0.4,
     )
     strike = 1.8
-    ttm = 1
+    ttm = np.array([1, 2])
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
-    ts_pricer = OneSidedTemperedStablePricer(**ts_params)
-    N = 50
+    ts_pricer = TemperedStablePricer(**ts_params)
+    N = 20
     print("N:", N)
     # t0 = time()
     # price = ts_pricer.price(**option_params, N=N)
@@ -37,10 +37,10 @@ def main():
     price = ts_pricer.price(**option_params, N=N)
     print("Time", time() - t0)
 
-    t0 = time()
-    price_vect = ts_pricer.price_vect(**option_params, N=N)
-    print("Time vect", time() - t0)
-    print("Error:", price_vect - price)
+    # t0 = time()
+    # price_vect = ts_pricer.price(**option_params, N=N)
+    # print("Time vect", time() - t0)
+    # print("Error:", price_vect - price)
     # print("Diff price:", price_vect - price)
 
 

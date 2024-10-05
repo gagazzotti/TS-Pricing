@@ -119,13 +119,15 @@ class TemperedStablePricer:
             * self.ulambda**n1
             * (-k) ** (n1 - self.beta_p * n2 - self.beta_m * n3 + n4)
         )
+        print(term1.shape)
         term2 = (
             self.a2_vect(N, ttm)
             * self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
             * (-k) ** (1 + n1 + n4)
         )
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
-        serie = ((term1 + term2) * exp_term).sum()
+        serie = (term1 + term2) * exp_term
+        serie = serie.sum()
         return serie
 
     def a1_vect(self, N: int, ttm):
@@ -142,6 +144,7 @@ class TemperedStablePricer:
             / gamma(1 + self.beta_p * n2)
         )
         at_term = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
+        print(at_term.shape)
         gamma_term = gamma(-n1 + self.beta_p * n2 + self.beta_m * n3 - n4) / (
             gamma(-self.beta_p * n2)
         )
