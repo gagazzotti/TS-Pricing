@@ -179,23 +179,36 @@ class TemperedStablePricer:
         )
         return serie
 
-    def price_vect(
+    def price(
         self,
         S0: float,
-        K: float,
+        K: float | npt.NDArray[np.float64],
         r: float,
         q: float,
-        ttm: npt.NDArray[np.float64],
+        ttm: float | npt.NDArray[np.float64],
         N: int = 5,
     ):
-        ttm_vec = np.array(ttm)[None, None, None, None, :, None]
-        K_vec = np.array(K)[None, None, None, None, None, :]
+        single_strike = False
+        single_ttm = False
+        if isinstance(K, float) or isinstance(K, int):
+            single_strike = True
+            K_vec = np.array([K])[None, None, None, None, None, :]
+        else:
+            K_vec = np.array(K)[None, None, None, None, None, :]
 
+        if isinstance(ttm, float) or isinstance(ttm, int):
+            single_ttm = True
+            ttm_vec = np.array([ttm])[None, None, None, None, :, None]
+            ttm_alone = np.array([ttm])
+        else:
+            ttm_vec = np.array(ttm)[None, None, None, None, :, None]
+            ttm_alone = ttm
+        # print(ttm_vec.shape)
         k = np.log(S0 / K_vec) + (r - q + self.zeta) * ttm_vec
         # print("k", k.shape)
-        serie1 = self.serie1_vect(k, ttm, N)
+        serie1 = self.serie1_vect(k, ttm_alone, N)
         # print(serie1.shape)
-        serie2 = self.serie2_vect(k, ttm, N)
+        serie2 = self.serie2_vect(k, ttm_alone, N)
         # print(serie2.shape)
         constant_term = np.exp(k - self.zeta * ttm_vec) - 1
         # print("const", constant_term.shape)
@@ -203,5 +216,17 @@ class TemperedStablePricer:
         factor_serie = np.exp(self.gamma * ttm_vec)
         factor = K * np.exp(-r * ttm_vec)
         call_price = factor * (constant_term + factor_serie * (serie1 + serie2))
-        # print(call_price.shape)
-        return call_price[0, 0, 0, 0]
+        call_price = call_price[0, 0, 0, 0]
+        if single_strike and single_ttm:
+            call_price = call_price[0, 0]
+            return call_price
+        elif single_strike and not single_ttm:
+            call_price = call_price[:, 0]
+            return call_price
+        elif not single_strike and single_ttm:
+            call_price = call_price[0, :]
+            return call_price
+        elif not single_strike and not single_ttm:
+            return call_price
+        else:
+            raise ValueError("Error")

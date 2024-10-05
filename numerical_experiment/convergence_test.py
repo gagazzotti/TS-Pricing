@@ -36,7 +36,7 @@ def main():
         #     beta_m=0.5 - np.pi / 100,
         #     lambda_m=0.4,
     )
-    n_start, n_end = 1, 51
+    n_start, n_end = 1, 81
     range_n = np.arange(n_start, n_end, 5) - 1
     range_n[0] = 1
     range_n = list(range_n)

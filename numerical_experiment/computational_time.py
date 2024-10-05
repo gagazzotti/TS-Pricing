@@ -10,10 +10,13 @@ import matplotlib.pyplot as plt
 # from matplotlib.ticker import FuncFormatter
 import scienceplots
 
-from mellin_ts.TemperedStablePricers import (
-    OneSidedTemperedStablePricer,
-    TemperedStablePricer,
-)
+# from mellin_ts.TemperedStablePricers import (
+#     OneSidedTemperedStablePricer,
+#     TemperedStablePricer,
+# )
+
+from mellin_ts.OneSidedTSPricer import OneSidedTemperedStablePricer
+from mellin_ts.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -61,7 +64,7 @@ def compute_time_per_option(
         dict: {n**2:comp. time}
     """
     time_per_option = {"ts": {}, "ts_p": {}}
-    for n in tqdm.tqdm(range(n_test)):
+    for n in tqdm.tqdm(range(1, n_test)):
         # print(n)
         strikes = np.linspace(1.1, 1.5, n)
         ttm = np.linspace(1.1, 1.3, n)
@@ -72,7 +75,7 @@ def compute_time_per_option(
         t = time.time()
         time_per_option["ts"][n] = t - t0
         t0 = time.time()
-        ts_p_pricer.price(**option_params, N=10)
+        ts_p_pricer.price_vect(**option_params, N=10)
         t = time.time()
         time_per_option["ts_p"][n] = t - t0
     return time_per_option
@@ -112,7 +115,7 @@ def plot_time(times: dict):
     plt.yscale("log")
     plt.grid()
     plt.legend()
-    plt.savefig("output/computational_time_one_sided.png", dpi=600)
+    plt.savefig("numerical_experiment/output/computational_time_one_sided.png", dpi=600)
     plt.close()
 
 
