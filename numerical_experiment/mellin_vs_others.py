@@ -49,7 +49,7 @@ def main():
     strike = 1.5
     ttm = 1.2
     eps_ts_p = 10.0 ** (-np.arange(5, 14))
-    eps_ts = 10.0 ** (-np.arange(2, 5))
+    eps_ts = 10.0 ** (-np.arange(2, 10))
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
 
     mellin_time_ts = get_time_mellin_ts(option_params, ts_params, eps_ts)
