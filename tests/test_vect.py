@@ -9,7 +9,7 @@ from matplotlib.ticker import FuncFormatter
 
 # import time
 
-from MellinTemperedStable.TemperedStablePricers import OneSidedTemperedStablePricer
+from mellin_ts.TemperedStablePricers import OneSidedTemperedStablePricer
 
 plt.style.use(["science"])
 

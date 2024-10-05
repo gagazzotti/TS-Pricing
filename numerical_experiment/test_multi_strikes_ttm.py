@@ -4,7 +4,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from MellinTemperedStable.TemperedStablePricers import TemperedStablePricer
+from mellin_ts.TemperedStablePricers import TemperedStablePricer
 
 
 def main():

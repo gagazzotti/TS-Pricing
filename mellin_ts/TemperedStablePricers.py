@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.special import gamma, factorial, poch
 import warnings
-from gamma_hand_made.gamma_module import gamma_upper_incomplete
+from mellin_ts.upper_gamma.gamma_module import gamma_upper_incomplete
 
 
 warnings.filterwarnings("ignore")

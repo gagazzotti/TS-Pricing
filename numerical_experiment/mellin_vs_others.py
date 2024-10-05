@@ -19,7 +19,7 @@ from fypy.termstructures.EquityForward import EquityForward
 
 # import time
 
-from MellinTemperedStable.TemperedStablePricers import (
+from mellin_ts.TemperedStablePricers import (
     OneSidedTemperedStablePricer,
     TemperedStablePricer,
 )

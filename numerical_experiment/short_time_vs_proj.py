@@ -15,7 +15,7 @@ from fypy.pricing.fourier.HilbertEuropeanPricer import HilbertEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from MellinTemperedStable.TemperedStablePricers import (
+from mellin_ts.TemperedStablePricers import (
     TemperedStablePricer,
     OneSidedTemperedStablePricer,
 )
