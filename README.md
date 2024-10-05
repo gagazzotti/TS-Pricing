@@ -5,3 +5,4 @@
 - do a toy example
 - do the short time behaviour
 - remove tests/test_vect.py, ./test.py
+- faire computational time comme mtn mais avec différent $N$ pour les deux
