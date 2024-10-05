@@ -162,7 +162,7 @@ def convergence(prices: npt.NDArray[np.float64], range_n: list[int]):
         label="Reference Price (One-sided)",
     )
     # plt.ylim(0.15, 0.3)
-    plt.ylim(0, 1)
+    plt.ylim(0, 4)
     step = 5
     xticks = np.arange(min(range_n), max(range_n) + 1, step) - 1
     xticks[0] = 1
