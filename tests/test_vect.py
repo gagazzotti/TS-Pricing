@@ -25,7 +25,7 @@ def main():
         lambda_m=0.4,
     )
     strike = 1.8
-    ttm = np.array([1, 2])
+    ttm = np.array([2])
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
     ts_pricer = TemperedStablePricer(**ts_params)
     N = 20

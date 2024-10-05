@@ -92,7 +92,7 @@ class TemperedStablePricer:
         )
         return -(zeta_p + zeta_m)
 
-    def serie2_vect(self, k: float, ttm: float, N: int):
+    def serie2(self, k: float, ttm: float, N: int):
         n1 = np.arange(N)[:, None, None]
         n2 = np.arange(N)[None, :, None]
         n3 = np.arange(N)[None, None, :]
@@ -108,20 +108,20 @@ class TemperedStablePricer:
         serie = (taylor_term * gamma_term * exp_term * at * ulambda_term).sum()
         return serie
 
-    def serie1_vect(self, k: float, ttm: float, N: int):
+    def serie1(self, k: float, ttm: float, N: int):
         n1 = np.arange(N)[:, None, None, None]
         n2 = np.arange(N)[None, :, None, None]
         n3 = np.arange(N)[None, None, :, None]
         n4 = np.arange(N)[None, None, None, :]
 
         term1 = (
-            self.a1_vect(N, ttm)
+            self.a1(N, ttm)
             * self.ulambda**n1
             * (-k) ** (n1 - self.beta_p * n2 - self.beta_m * n3 + n4)
         )
         print(term1.shape)
         term2 = (
-            self.a2_vect(N, ttm)
+            self.a2(N, ttm)
             * self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
             * (-k) ** (1 + n1 + n4)
         )
@@ -130,11 +130,12 @@ class TemperedStablePricer:
         serie = serie.sum()
         return serie
 
-    def a1_vect(self, N: int, ttm):
-        n1 = np.arange(N)[:, None, None, None]
-        n2 = np.arange(N)[None, :, None, None]
-        n3 = np.arange(N)[None, None, :, None]
-        n4 = np.arange(N)[None, None, None, :]
+    def a1(self, N: int, ttm):
+        # ttm = np.array(ttm)[None, None, None, None, :]
+        n1 = np.arange(N)[:, None, None, None, None]
+        n2 = np.arange(N)[None, :, None, None, None]
+        n3 = np.arange(N)[None, None, :, None, None]
+        n4 = np.arange(N)[None, None, None, :, None]
         taylor = (-1) ** (n1 + n2 + n3) / (
             factorial(n1) * factorial(n2) * factorial(n3) * factorial(n4)
         )
@@ -153,9 +154,12 @@ class TemperedStablePricer:
             * (self.beta_p / (self.beta_p + self.beta_m))
         )[:, 0, 0, :]
         a1 = pochhamer_symb * at_term * gamma_term * taylor
+        print(a1.sum())
+
+        print("###########################")
         return a1
 
-    def a2_vect(self, N: int, ttm):
+    def a2(self, N: int, ttm):
         n1 = np.arange(N)[:, None, None, None]
         n2 = np.arange(N)[None, :, None, None]
         n3 = np.arange(N)[None, None, :, None]
@@ -174,16 +178,15 @@ class TemperedStablePricer:
         return a2
 
     def price(self, S0: float, K: float, r: float, q: float, ttm: float, N: int = 5):
+        # ttm = np.array(ttm)[None, None, None, None, :]
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
         # print(k)
-        serie1_vect = self.serie1_vect(k, ttm, N)
-        serie2_vect = self.serie2_vect(k, ttm, N)
-        # print(serie1_vect, serie2_vect)
+        serie1 = self.serie1(k, ttm, N)
+        serie2 = self.serie2(k, ttm, N)
+        # print(serie1, serie2)
         constant_term = np.exp(k - self.zeta * ttm) - 1
         # factors
         factor_serie = np.exp(self.gamma * ttm)
         factor = K * np.exp(-r * ttm)
-        call_price = factor * (
-            constant_term + factor_serie * (serie1_vect + serie2_vect)
-        )
+        call_price = factor * (constant_term + factor_serie * (serie1 + serie2))
         return call_price
