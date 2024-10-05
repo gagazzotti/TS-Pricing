@@ -67,61 +67,6 @@ class OneSidedTemperedStablePricer:
         """
         return self.ap * self.lambd**self.beta
 
-    def price_old(
-        self,
-        S0: float,
-        K: float,
-        r: float,
-        q: float,
-        ttm: float,
-        N: int = 25,
-        # time_verbose=True,
-    ):
-        # mettre k en array[None,:] et ttm en array [:,None]
-        # t0 = time.time()
-        k = np.log(S0 / K) + (r - q + self.zeta) * ttm
-        # print(f"k:{k}")
-        # self.display_params(k)
-        serie = self.serie(k, ttm, N)
-        call_price = K * np.exp((self.gamma - r) * ttm) * serie
-        # if time_verbose:
-        #     print(f"Time: {time.time()-t0}")
-        return call_price
-
-    def serie(
-        self,
-        k: float | npt.NDArray[np.float64],
-        ttm: float | npt.NDArray[np.float64],
-        N: int,
-    ):
-
-        gamma_inc_np = np.frompyfunc(mpmath.gammainc, 2, 1)
-        serie = 0
-        for n in range(N):
-            coef = (-self.ap * ttm) ** n / (factorial(n) * gamma(-n * self.beta))
-            # print(mpmath.gammainc(-self.beta * n, -k * self.lambd))
-            gam_lam = np.array(gamma_inc_np(-self.beta * n, -k * self.lambd)).astype(
-                float
-            )
-            # print(gamma(-n * self.beta) * gamma_inc_np(-self.beta * n, -k * self.lambd))
-            gam_lam_1 = np.array(
-                gamma_inc_np(-self.beta * n, -k * (self.lambd - 1))
-            ).astype(float)
-            diff = (
-                np.exp(k) * (self.lambd - 1) ** (n * self.beta) * gam_lam_1
-                - self.lambd ** (self.beta * n) * gam_lam
-            )
-            serie += coef * diff
-            # print(
-            #     gamma_inc_np(-self.beta * n, -k * self.lambd)
-            #     - gamma_upper_incomplete([-self.beta * n], [-k * self.lambd])[0]
-            # )
-
-        ##
-        ##
-
-        return serie
-
     def price(
         self,
         S0: float,
@@ -133,14 +78,9 @@ class OneSidedTemperedStablePricer:
         # time_verbose=True,
     ):
         # mettre k en array[None,:] et ttm en array [:,None]
-        # t0 = time.time()
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
-        # print(f"k:{k}")
-        # self.display_params(k)
         serie = self.serie_vect(k, ttm, N)
         call_price = K * np.exp((self.gamma - r) * ttm) * serie
-        # if time_verbose:
-        #     print(f"Time: {time.time()-t0}")
         return call_price
 
     def serie_vect(
