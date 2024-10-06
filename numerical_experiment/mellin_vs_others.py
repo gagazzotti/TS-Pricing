@@ -48,8 +48,8 @@ def main():
     )
     strike = 1.5
     ttm = 1.2
-    eps_ts_p = 10.0 ** (-np.arange(5, 14))
-    eps_ts = 10.0 ** (-np.arange(2, 10))
+    eps_ts_p = 10.0 ** (-np.arange(5, 6))
+    eps_ts = 10.0 ** (-np.arange(2, 4))
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
 
     mellin_time_ts = get_time_mellin_ts(option_params, ts_params, eps_ts)
@@ -69,6 +69,8 @@ def main():
     print("Mellin TS One-sided")
     print(10 * "#")
     print(df_ts_p)
+    save_results(df_ts, "TS")
+    save_results(df_ts_p, "TSp")
 
 
 def get_proj_curves(
@@ -172,6 +174,21 @@ def get_time_mellin_ts_p(option_params: dict, eps: dict):
             comp_time["Mellin"][error] = None
     df = pd.DataFrame.from_dict(comp_time)
     return df
+
+
+def save_results(df: pd.DataFrame, title: str, latex: bool = True):
+    # Sauvegarder le DataFrame en .txt
+    path = "numerical_experiment/output/"
+    txt_filename = f"{title}.txt"
+    df.to_csv(path + txt_filename, sep="\t", index=False)
+    print(f"DataFrame sauvegardé en {txt_filename}")
+
+    # Sauvegarder en LaTeX si latex=True
+    if latex:
+        latex_filename = path + f"{title}.tex"
+        with open(latex_filename, "w") as f:
+            f.write(df.to_latex(index=False))
+        print(f"DataFrame sauvegardé en {latex_filename}")
 
 
 if __name__ == "__main__":

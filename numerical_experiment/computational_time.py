@@ -10,10 +10,6 @@ import matplotlib.pyplot as plt
 # from matplotlib.ticker import FuncFormatter
 import scienceplots
 
-# from mellin_ts.TemperedStablePricers import (
-#     OneSidedTemperedStablePricer,
-#     TemperedStablePricer,
-# )
 
 from mellin_ts.OneSidedTSPricer import OneSidedTemperedStablePricer
 from mellin_ts.TSPricer import TemperedStablePricer

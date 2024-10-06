@@ -10,7 +10,6 @@ import tqdm
 
 from matplotlib.ticker import FuncFormatter
 
-# import time
 
 from mellin_ts.TSPricer import TemperedStablePricer
 from mellin_ts.OneSidedTSPricer import OneSidedTemperedStablePricer
@@ -162,7 +161,7 @@ def convergence(prices: npt.NDArray[np.float64], range_n: list[int]):
         label="Reference Price (One-sided)",
     )
     # plt.ylim(0.15, 0.3)
-    plt.ylim(0, 4)
+    plt.ylim(0, 0.44)
     step = 5
     xticks = np.arange(min(range_n), max(range_n) + 1, step) - 1
     xticks[0] = 1
