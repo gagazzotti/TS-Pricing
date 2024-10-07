@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import scienceplots
 
 
-from mellin_ts.OneSidedTSPricer import OneSidedTemperedStablePricer
-from mellin_ts.TSPricer import TemperedStablePricer
+from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+from mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 

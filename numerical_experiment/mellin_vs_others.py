@@ -19,10 +19,9 @@ from fypy.termstructures.EquityForward import EquityForward
 
 # import time
 
-from mellin_ts.TemperedStablePricers import (
-    OneSidedTemperedStablePricer,
-    TemperedStablePricer,
-)
+from mellin_ts.pricing.TSPricer import TemperedStablePricer
+from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+
 
 # plt.style.use(["science"])
 pd.set_option("display.precision", 8)

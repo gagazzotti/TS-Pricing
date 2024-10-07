@@ -15,10 +15,8 @@ from fypy.pricing.fourier.HilbertEuropeanPricer import HilbertEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from mellin_ts.TemperedStablePricers import (
-    TemperedStablePricer,
-    OneSidedTemperedStablePricer,
-)
+from mellin_ts.pricing.TSPricer import TemperedStablePricer
+from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
 
 
 plt.style.use(["science"])

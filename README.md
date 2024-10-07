@@ -6,3 +6,4 @@
 - do the short time behaviour
 - remove tests/test_vect.py, ./test.py
 - faire computational time comme mtn mais avec différent $N$ pour les deux
+- normal que ce soit à 10-13 et pas 10-15 (on regarde en erreur relative!!!!!!!!)

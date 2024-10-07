@@ -11,8 +11,8 @@ import tqdm
 from matplotlib.ticker import FuncFormatter
 
 
-from mellin_ts.TSPricer import TemperedStablePricer
-from mellin_ts.OneSidedTSPricer import OneSidedTemperedStablePricer
+from mellin_ts.pricing.TSPricer import TemperedStablePricer
+from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -27,14 +27,7 @@ def main():
         beta_m=0.5 - np.pi / 100,
         lambda_m=0.4,
     )
-    ts_p_params = dict(
-        alpha_p=0.44,
-        beta_p=0.1 + np.exp(1) / 10,
-        lambda_p=1.4,
-        #     alpha_m=0.35,
-        #     beta_m=0.5 - np.pi / 100,
-        #     lambda_m=0.4,
-    )
+    ts_p_params = dict(alpha_p=0.44, beta_p=0.1 + np.exp(1) / 10, lambda_p=1.4)
     n_start, n_end = 1, 81
     range_n = np.arange(n_start, n_end, 5) - 1
     range_n[0] = 1
