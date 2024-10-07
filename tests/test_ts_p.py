@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from mellin_ts.OneSidedTSPricer import OneSidedTemperedStablePricer
+from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
 import time
 import warnings
 
@@ -20,9 +20,9 @@ class TestMellinTSp(unittest.TestCase):
 
         price_vect = ts_p_pricer.price_vect(**option_params)
 
-        price_ref = 0.18769860488552348
+        price_ref = 0.18769860488552348  # PROJ
         self.assertAlmostEqual(price, price_ref)
-        # self.assertAlmostEqual(price_vect[0, 0, 0], price_ref)
+        self.assertAlmostEqual(price_vect[0, 0, 0], price_ref)
 
         print("\n Mellin One sided => Ok!")
 
