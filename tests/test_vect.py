@@ -9,7 +9,7 @@ from matplotlib.ticker import FuncFormatter
 
 # import time
 
-from mellin_ts.TSPricer import TemperedStablePricer
+from mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -35,7 +35,7 @@ def main():
     ##
     option_params = dict(S0=1, K=1.5, r=0.02, q=0.05, ttm=1.2)
     t0 = time()
-    price = ts_pricer.price(**option_params, N=50)
+    price = ts_pricer.price(**option_params, N=40)
     print(price)
 
 

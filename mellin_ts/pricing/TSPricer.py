@@ -1,13 +1,9 @@
 """Importing modules"""
 
-import time
-import tqdm
-import mpmath
-import itertools as it
+import warnings
 import numpy as np
 import numpy.typing as npt
 from scipy.special import gamma, factorial, poch
-import warnings
 
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -40,16 +36,6 @@ class TemperedStablePricer:
         self.gamma = self.gamma_()
 
         return
-
-    def display_params(self, k: float):
-        """Display params in the terminal
-
-        Args:
-            k (float): moneyness
-        """
-        print(f"Moneyness (k): {k}")
-        print(f"zeta: {self.zeta}")
-        print(f"gamma: {self.gamma}")
 
     def a(self, alpha: float, beta: float) -> float:
         """a_pm constant in the paper
