@@ -137,128 +137,23 @@ class TSDensity:
         return integrand.sum(axis=1) * du / (2 * np.pi)
 
     def get_mean(self):
+        """return mean of TS
+
+        Returns:
+            float: mean
+        """
         return gamma(1 - self.beta_p) * self.alpha_p / self.lambda_p ** (
             1 - self.beta_p
         ) - gamma(1 - self.beta_m) * self.alpha_m / self.lambda_m ** (1 - self.beta_m)
 
     def get_std(self):
-        return gamma(2 - self.beta_p) * self.alpha_p / self.lambda_p ** (
+        """return std
+
+        Returns:
+            float: std
+        """
+        var = gamma(2 - self.beta_p) * self.alpha_p / self.lambda_p ** (
             2 - self.beta_p
         ) + gamma(2 - self.beta_m) * self.alpha_m / self.lambda_m ** (2 - self.beta_m)
-
-
-if __name__ == "__main__":
-    ts_params = dict(
-        alpha_p=0.44,
-        beta_p=0.1 + np.exp(1) / 10,
-        lambda_p=1.4,
-        alpha_m=0.65,
-        beta_m=0.5 - np.pi / 100,
-        lambda_m=0.4,
-    )
-    ts_params = dict(
-        alpha_p=0.44,
-        beta_p=0.2 + np.exp(1) / 10,
-        lambda_p=1.4,
-        alpha_m=0.64,
-        beta_m=0.1 + np.exp(1) / 10,
-        lambda_m=0.4,
-    )
-    # ts_params = dict(
-    #     alpha_p=0.5,
-    #     beta_p=0.3 + np.exp(1) / 1000,
-    #     lambda_p=0.4,
-    #     alpha_m=0.35,
-    #     beta_m=0.2 + np.exp(1) / 1000,
-    #     lambda_m=0.4,
-    # )
-
-    densTS = TSDensity(**ts_params)
-    x = np.arange(-10.05, 10, 5 * 1e-1)
-    density_Mellin_40 = densTS.density_Mellin(x, n=20)
-    density_Mellin_50 = densTS.density_Mellin(x, n=30)
-    density_Mellin_55 = densTS.density_Mellin(x, n=55)
-    print("done Mellin")
-
-    x_fourier = np.arange(min(x), max(x), 1e-2)
-    density_Fourier = densTS.density_Fourier(x_fourier, bounds=1e3, du=1e-1)
-    print("done fourier")
-    print(density_Fourier.shape, x.shape)
-    plt.figure(figsize=(8, 5))
-    plt.ylim(0, 1)
-
-    plt.scatter(
-        x,
-        density_Mellin_40,
-        marker="d",
-        color="red",
-        alpha=0.3,
-        label=r"Series expansion $n=20$",
-    )
-    plt.scatter(
-        x,
-        density_Mellin_50,
-        marker="o",
-        color="red",
-        alpha=0.5,
-        label=r"Series expansion $n=30$",
-    )
-    plt.scatter(
-        x,
-        density_Mellin_55,
-        marker="x",
-        color="red",
-        alpha=0.8,
-        label=r"Series expansion $n=55$",
-    )
-    std = densTS.std
-    mean = densTS.mean
-
-    plt.fill_between(
-        x_fourier,
-        density_Fourier,
-        where=(x_fourier >= mean + -std) & (x_fourier <= mean + std),
-        color="green",
-        alpha=0.8,
-        # label="[-σ, σ]",
-    )
-    plt.fill_between(
-        x_fourier,
-        density_Fourier,
-        where=(x_fourier >= mean + -2 * std) & (x_fourier <= mean + -std),
-        color="green",
-        alpha=0.5,
-        # label="[-2σ, -σ]",
-    )
-    plt.fill_between(
-        x_fourier,
-        density_Fourier,
-        where=(x_fourier >= mean + std) & (x_fourier <= mean + 2 * std),
-        color="green",
-        alpha=0.5,
-        # label="[σ, 2σ]",
-    )
-    plt.fill_between(
-        x_fourier,
-        density_Fourier,
-        where=(x_fourier >= mean + -3 * std) & (x_fourier <= mean + -2 * std),
-        color="green",
-        alpha=0.3,
-        # label="[-3σ, -2σ]",
-    )
-    plt.fill_between(
-        x_fourier,
-        density_Fourier,
-        where=(x_fourier >= mean + 2 * std) & (x_fourier <= mean + 3 * std),
-        color="green",
-        alpha=0.5,
-        # label="[2σ, 3σ]",
-    )
-
-    plt.plot(x_fourier, density_Fourier, color="blue", label="Fourier inversion")
-
-    plt.xlabel(r"$x$")
-    plt.grid()
-    # plt.ylim(0, 1)
-    plt.legend()
-    plt.show()
+        std = var**0.5
+        return std
