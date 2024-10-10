@@ -1,9 +1,9 @@
 import warnings
 import numpy as np
 import numpy.typing as npt
-
 import matplotlib.pyplot as plt
 import scienceplots
+
 from mellin_ts.densities.TSDensity import TSDensity
 
 plt.style.use("science")
@@ -40,47 +40,50 @@ def plot_fourier(ax1: plt.Axes, density: TSDensity, x: npt.NDArray[np.float64]):
     ax1.plot(x_fourier, dens_fourier, color="blue", label="Fourier inversion")
 
 
-def plot_std_zones(
-    ax: plt.Axes, density: TSDensity, x: npt.NDArray[np.float64], n_std: int = 6
-):
+def plot_std_zones(ax: plt.Axes, density: TSDensity, n_std: int = 3):
     std = density.std
     mean = density.mean
-    x_zone = np.arange(np.min(x), np.max(x), 1e-2)
-    for n in range(n_std):
-        mask_std = ((x_zone >= mean - (n + 1) * std) & (x_zone <= mean - n * std)) | (
-            (x_zone >= mean + n * std) & (x_zone <= mean + (n + 1) * std)
-        )
-        ax.fill_between(
-            x_zone,
-            ax.get_ylim()[0],  # Prendre la valeur minimale de l'axe y
-            ax.get_ylim()[1],  # Prendre la valeur maximale de l'axe y
-            where=mask_std,
-            color="green",
-            alpha=0.7 - n / 10,
-            label=rf"$[\mu-{n+1}\sigma,\mu+{n+1}\sigma]$",
-        )
+    range_sigma = np.arange(-n_std, n_std + 1)
+    xsigma = mean + std * range_sigma
+    ax.set_xticks(xsigma)  # Placement des mu + i*sigma
+    labels = get_labels(range_sigma)
+    ax.set_xticklabels(
+        labels,
+        fontsize=8,
+        rotation=45,
+    )
+
+
+def get_labels(range_sigma: npt.NDArray[np.float64]):
+    labels = []
+    for i in range_sigma:
+        if i == 0:
+            labels.append(r"$\mu$")
+        elif i > 0:
+            labels.append(rf"$\mu+{i}\sigma$")
+        elif i < 0:
+            labels.append(rf"$\mu{i}\sigma$")
+    return labels
 
 
 def build_figure(density: TSDensity, range_n: list[int], x: npt.NDArray[np.float64]):
     densities = get_mellin_dens(density, range_n, x)
     fig = plt.figure(figsize=(8, 5))
     ax1 = fig.add_subplot()
-    ax2 = ax1.twinx()
-    # limits
     ax1.set_xlim(min(x), max(x) - 0.1)
+    ax1.set_xlim(min(x), 5)
     ax1.set_ylim(0, 0.6)
-    ax2.set_ylim(-2, 2)
-    # label
     ax1.set_xlabel(r"$x$")
-    # grid
-    ax1.grid()
-    # disable ax2 ticks
+    ax2 = ax1.twiny()
+    ax2.tick_params(axis="x", length=0)
     ax2.set_yticks([])
+    ax2.set_xlim(ax1.get_xlim())
+    ax2.set_ylim(ax1.get_ylim())
+    ax2.grid()
     plot_mellin(ax1, densities, x)
     plot_fourier(ax1, density, x)
-    plot_std_zones(ax2, density, x)
+    plot_std_zones(ax2, density)
     ax1.legend(loc="upper left")
-    ax2.legend(loc="upper right")
     plt.savefig("numerical_experiment/output/densities.png", dpi=600)
     plt.close()
 
