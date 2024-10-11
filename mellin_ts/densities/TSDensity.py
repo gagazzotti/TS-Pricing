@@ -1,11 +1,9 @@
 import warnings
 import numpy as np
 import numpy.typing as npt
-import matplotlib.pyplot as plt
 from scipy.special import gamma, factorial, poch
 import scienceplots
 
-plt.style.use("science")
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 

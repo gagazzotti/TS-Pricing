@@ -98,8 +98,6 @@ def main():
         lambda_m=0.4,
     )
     densTS = TSDensity(**ts_params)
-
-    # Définition des points pour les densités Mellin
     x = np.arange(-7.55, 7.6, 5 * 1e-1)
     range_n = [20, 30, 60]
     build_figure(densTS, range_n, x)
