@@ -8,3 +8,4 @@
 - faire computational time comme mtn mais avec différent $N$ pour les deux
 - normal que ce soit à 10-13 et pas 10-15 (on regarde en erreur relative!!!!!!!!)
 - faire un test pour les densités (éloignés de 0....)
+- faire le TS one sided 

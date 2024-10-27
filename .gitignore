@@ -8,6 +8,7 @@ notebooks/
 output/
 *.ipynb
 ts.py
+BG/
 # C extensions
 # *.so
 
