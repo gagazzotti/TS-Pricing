@@ -33,10 +33,11 @@ def main():
     price = ts_pricer.price(**option_params, N=N)
     print(price.shape)
     ##
-    option_params = dict(S0=1, K=1.5, r=0.02, q=0.05, ttm=1.2)
-    t0 = time()
-    price = ts_pricer.price(**option_params, N=40)
-    print(price)
+    # option_params = dict(S0=1, K=1.5, r=0.02, q=0.05, ttm=1.2)
+    # t0 = time()
+    # price = ts_pricer.price(**option_params, N=40)
+    # print(price)
+    # TODO: faire la comparaison avec proj et prendre la norme sup
 
 
 if __name__ == "__main__":
