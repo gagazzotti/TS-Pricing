@@ -91,6 +91,34 @@ class OneSidedTemperedStablePricer:
         serie = self.serie(k, ttm, N)
         call_price = K * np.exp((self.gamma - r) * ttm) * serie
         return call_price
+    
+
+    def serie(
+        self,
+        k: float | npt.NDArray[np.float64],
+        ttm: float | npt.NDArray[np.float64],
+        N: int,
+    ):
+
+        n_vec = np.arange(0, N)
+
+        coef_vect = (-self.ap * ttm) ** n_vec / (
+            factorial(n_vec) * gamma(-n_vec * self.beta)
+        )
+        gamma_incomplete_vect = np.array(
+            gamma_ui(-self.beta * n_vec, N * [-k * self.lambd])
+        )
+        gamma_incomplete_1_vect = np.array(
+            gamma_ui(-self.beta * n_vec, N * [-k * (self.lambd - 1)])
+        )
+        diff_vect = (
+            np.exp(k)
+            * (self.lambd - 1) ** (n_vec * self.beta)
+            * gamma_incomplete_1_vect
+            - self.lambd ** (self.beta * n_vec) * gamma_incomplete_vect
+        )
+        call_price = (coef_vect * diff_vect).sum()
+        return call_price
 
     def price_vect(
         self,
@@ -142,29 +170,3 @@ class OneSidedTemperedStablePricer:
         call_price = (coef_vect * diff_vect).sum(axis=(0))
         return call_price
 
-    def serie(
-        self,
-        k: float | npt.NDArray[np.float64],
-        ttm: float | npt.NDArray[np.float64],
-        N: int,
-    ):
-
-        n_vec = np.arange(0, N)
-
-        coef_vect = (-self.ap * ttm) ** n_vec / (
-            factorial(n_vec) * gamma(-n_vec * self.beta)
-        )
-        gamma_incomplete_vect = np.array(
-            gamma_ui(-self.beta * n_vec, N * [-k * self.lambd])
-        )
-        gamma_incomplete_1_vect = np.array(
-            gamma_ui(-self.beta * n_vec, N * [-k * (self.lambd - 1)])
-        )
-        diff_vect = (
-            np.exp(k)
-            * (self.lambd - 1) ** (n_vec * self.beta)
-            * gamma_incomplete_1_vect
-            - self.lambd ** (self.beta * n_vec) * gamma_incomplete_vect
-        )
-        call_price = (coef_vect * diff_vect).sum()
-        return call_price

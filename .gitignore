@@ -11,6 +11,8 @@ ts.py
 BG/
 # C extensions
 # *.so
+olds/
+text.txt
 
 # Distribution / packaging
 .Python

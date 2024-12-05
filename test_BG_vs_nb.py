@@ -14,18 +14,18 @@ from fypy.termstructures.EquityForward import EquityForward
 
 def main():
     print("##")
-    S0, K, r, q, ttm = 1, 1.6, 0, 0, 1
+    S0, K, r, q, ttm = 1, 1.7, 0, 0, 1
     alphap = 0.58
-    lambdap = 1.4
+    lambdap = 1.38
     alpham = 1 / 3
     lambdam = 0.4
     bg_pricer = BGPricer(alphap, lambdap, alpham, lambdam)
     t0 = time()
     # price = bg_pricer.price_eur(S0, K, r, q, ttm, N=100)
-    price = bg_pricer.price_eur_diff(S0, K, r, q, ttm, N=100)
+    price_series = bg_pricer.price_eur_diff(S0, K, r, q, ttm, N=100)
 
     t_series = time() - t0
-    print("Price", price)
+    print("Price", price_series)
     print("Time", t_series)
 
     ################
@@ -46,6 +46,7 @@ def main():
         times.append(t)
     print(price)
     print("Time proj", np.mean(times), 1.96 * np.std(times) / 1**0.5)
+    print("Error", price_series-price)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,9 @@ import numpy.typing as npt
 from scipy.special import gamma, factorial, poch
 import scipy
 import scipy.special
+from time import time
+
+# pylint: disable=all
 
 from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
     gamma_upper_incomplete as gamma_ui_vect,
@@ -15,11 +18,22 @@ from mellin_ts.pricing.upper_gamma.gamma_module import (
     gamma_upper_incomplete as gamma_ui,
 )
 
+from mellin_ts.pricing.lower_gamma_vect.gamma_incomp import (
+    gamma_lower_incomplete_tensor,
+)
+
+# pylint: enable=all
+
+
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 def gamma_lower_scipy(a, z):
     return scipy.special.gamma(a) * (1 - scipy.special.gammaincc(a, z))
+
+
+def gamma_lower_cpp(a, z):
+    return gamma_lower_incomplete_tensor(a, z)
 
 
 class TemperedStablePricer:
@@ -114,6 +128,7 @@ class TemperedStablePricer:
             * (self.beta_p / (self.beta_p + self.beta_m))
         )[:, 0, 0, :, :]
         a1 = pochhamer_symb * at_term * gamma_term * taylor
+        print("heho", a1[0, 0, 0, 0, 0])
         return a1
 
     def a2_vect_3_indexes(self, N: int, ttm, k):
@@ -146,6 +161,63 @@ class TemperedStablePricer:
         )
         return -a2 * function_term * ulambda_term
 
+    def a1_vect_3_indexes(self, N: int, ttm, k):
+        ttm_vec = np.array(ttm)[None, None, None, :, None]
+        n1 = np.arange(N)[:, None, None, None, None]
+        n2 = np.arange(N)[None, :, None, None, None]
+        n3 = np.arange(N)[None, None, :, None, None]
+        taylor = (-1) ** (n1 + n2 + n3) / (
+            factorial(n1) * factorial(n2) * factorial(n3)
+        )
+        pochhamer_symb = poch(-self.beta_m * n3, n1) / gamma(1 + self.beta_p * n2)
+
+        at_term = (self.ap * ttm_vec) ** n2 * (self.am * ttm_vec) ** n3
+        ulambda_term = self.ulambda ** (n1)
+        k_vec = k[:, :, 0]  # doit faire ca car
+        # A1 pas encore vectorisé, on pourra réduire les dimensions une fois A1 fait
+        k_vec = np.ones_like(n1 + n2 + n3).astype(float) * k_vec.item()
+        # piecwise
+        low_gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
+        # gamma_term in 0,0,0
+        low_gamma_term[0, 0, 0, :] = self.beta_p / (self.beta_m + self.beta_p)
+
+        # other
+        low_gamma_term = gamma(1 - n1 + self.beta_p * n2 + self.beta_m * n3) / (
+            gamma(-self.beta_p * n2)
+        )
+
+        low_gamma_term = low_gamma_term * (
+            (
+                np.exp(k_vec)
+                * (self.lambda_p - 1) ** (-n1 + self.beta_p * n2 + self.beta_m * n3)
+                * np.array(
+                    gamma_lower_incomplete_tensor(
+                        n1 - self.beta_p * n2 - self.beta_m * n3,
+                        -(self.lambda_p - 1) * k_vec,
+                    )
+                )
+            )
+            - (
+                (self.lambda_p) ** (-n1 + self.beta_p * n2 + self.beta_m * n3)
+                * np.array(
+                    gamma_lower_incomplete_tensor(
+                        n1 - self.beta_p * n2 - self.beta_m * n3,
+                        -(self.lambda_p) * k_vec,
+                    )
+                )
+            )
+        ).astype(float)
+
+        # gamma_term in >1,0,0
+        low_gamma_term[1:, 0, 0, :] = 0
+        # multiplication par e^{k}-1
+        low_gamma_term[0, 0, 0] = low_gamma_term[0, 0, 0] * (
+            0 * np.exp(k_vec[0, 0, 0]) - 1
+        ).astype(float)
+
+        a1 = taylor * pochhamer_symb * at_term
+        return -a1 * ulambda_term * low_gamma_term
+
     def a2_vect(self, N: int, ttm):
         ttm_vec = np.array(ttm)[None, None, None, :, None]
         n1 = np.arange(N)[:, None, None, None, None, None]
@@ -174,16 +246,35 @@ class TemperedStablePricer:
         n3 = np.arange(N)[None, None, :, None, None, None]
         n4 = np.arange(N)[None, None, None, :, None, None]
 
+        #####################################################
+        ################## SECOND SERIE #####################
+        #####################################################
+
         term1 = (
             self.a1_vect(N, ttm)
             * self.ulambda**n1
             * (-k) ** (n1 - self.beta_p * n2 - self.beta_m * n3 + n4)
         )
+        # attention 0* poiur test: a enlever
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
-
+        ##
+        print(term1[0, 0, 0, 0])
         # separation
         serie1_true = factor_serie[:, None] * (term1 * exp_term).sum(axis=(0, 1, 2, 3))
-        #######
+
+        term1_3_index = self.a1_vect_3_indexes(N, ttm, k)
+        serie1_true_3 = factor_serie[:, None] * (term1_3_index).sum(axis=(0, 1, 2))
+
+        print(
+            "COMPARISON", (term1 * exp_term)[10, 8, 7, :].sum(), term1_3_index[10, 8, 7]
+        )
+
+        #####################################################
+        ################## SECOND SERIE #####################
+        #####################################################
+
+        # 4 indexes
+        t0 = time()
         term2 = (
             self.a2_vect(N, ttm)
             * self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
@@ -192,17 +283,21 @@ class TemperedStablePricer:
         print("term2", term2.shape)
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
         serie2_true = factor_serie[:, None] * (term2 * exp_term).sum(axis=(0, 1, 2, 3))
-        # separation
+        print("Time 4 indexes", time() - t0)
+        t0 = time()
+
+        # 3 indexes
         term2_3_index = self.a2_vect_3_indexes(N, ttm, k)
         print("**", term2_3_index.shape)
         # gérer le term lambda-1 - lambda en gammainc - gamma inc
         serie2 = factor_serie[:, None] * (term2_3_index).sum(axis=(0, 1, 2))
+        print("Time 3 indexes", time() - t0)
         print(serie2.shape)
         ###
         serie = (term1 + term2) * exp_term
         # TODO: faire les multiplications séparémenent pour mettre term1*factor_serie et remplacer un indice
         serie = factor_serie[:, None] * serie.sum(axis=(0, 1, 2, 3))
-        # print(serie2, serie2_true)
+        print(serie2, serie2_true)
         return serie
 
     def serie2_vect(self, k: float, ttm: float, N: int):
