@@ -1,66 +1,70 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-#include <gsl/gsl_sf_gamma.h>
-#include <limits>  // Pour std::numeric_limits
-#include <cmath>   // Pour std::isfinite, std::floor
+#include <cmath>    // Pour std::pow, std::fabs
+#include <limits>   // Pour std::numeric_limits
 
 namespace py = pybind11;
 
-// Fonction pour calculer la gamma inférieure non normalisée pour un tenseur
-py::array_t<double> gamma_lower_incomplete_tensor(const py::array_t<double>& a, const py::array_t<double>& x) {
-    // Vérification que les dimensions des deux tenseurs sont compatibles
-    py::buffer_info a_info = a.request();
-    py::buffer_info x_info = x.request();
-
-    if (a_info.ndim != x_info.ndim) {
-        throw std::invalid_argument("Les tenseurs a et x doivent avoir le même nombre de dimensions.");
+// Fonction pour calculer γ(a, x) en utilisant l'expansion donnée
+double gamma_lower_series(double a, double x, size_t max_terms = 100, double tolerance = 1e-10) {
+    if (x < 0) {
+        throw std::invalid_argument("x doit être positif pour cette méthode.");
+    }
+    if (a <= 0 && std::floor(a) == a) {
+        // Cas où a est un entier négatif ou zéro : résultat non défini
+        return std::numeric_limits<double>::quiet_NaN();
     }
 
-    for (py::ssize_t i = 0; i < a_info.ndim; ++i) {
-        if (a_info.shape[i] != x_info.shape[i]) {
-            throw std::invalid_argument("Les tenseurs a et x doivent avoir les mêmes dimensions.");
+    double sum = 0.0;   // Somme de la série
+    double term = std::pow(x, a);  // Premier terme de la série
+    sum += term / a;    // Ajouter le premier terme
+
+    for (size_t k = 1; k < max_terms; ++k) {
+        term *= (-1.0) * x / k;  // Calcul du terme suivant
+        sum += term / (a + k);   // Ajouter à la somme
+
+        // Si la contribution devient négligeable, arrêter
+        if (std::fabs(term) < tolerance) {
+            break;
         }
     }
 
-    // Création d'un tableau de sortie avec les mêmes dimensions que `a`
-    auto result = py::array_t<double>(a_info.shape);
-    py::buffer_info result_info = result.request();
+    return sum;  // Retourner la somme calculée
+}
 
-    // Accès direct aux données d'entrée et de sortie
+// Fonction pour calculer γ(a, x) pour des tableaux de dimensions arbitraires mais égales
+py::array_t<double> gamma_lower_incomplete_non_normalized(const py::array_t<double>& a_array, const py::array_t<double>& x_array) {
+    // Vérification des dimensions des tableaux
+    py::buffer_info a_info = a_array.request();
+    py::buffer_info x_info = x_array.request();
+
+    if (a_info.shape != x_info.shape) {
+        throw std::invalid_argument("Les tableaux d'entrée doivent avoir les mêmes dimensions.");
+    }
+
+    // Création du tableau de sortie avec les mêmes dimensions
+    auto result_array = py::array_t<double>(a_info.shape);
+    py::buffer_info result_info = result_array.request();
+
+    // Accès aux données des tableaux
     double* a_ptr = static_cast<double*>(a_info.ptr);
     double* x_ptr = static_cast<double*>(x_info.ptr);
     double* result_ptr = static_cast<double*>(result_info.ptr);
 
-    // Calcul du nombre total d'éléments
+    // Calcul pour chaque élément
     size_t total_elements = 1;
-    for (py::ssize_t i = 0; i < a_info.ndim; ++i) {
-        total_elements *= a_info.shape[i];
+    for (const auto& dim : a_info.shape) {
+        total_elements *= dim;  // Nombre total d'éléments
     }
 
-    // Calcul de gamma inférieure non normalisée pour chaque élément
     for (size_t idx = 0; idx < total_elements; ++idx) {
-        // Vérifier si `a[idx]` est un entier négatif ou zéro
-        if (a_ptr[idx] <= 0 && std::floor(a_ptr[idx]) == a_ptr[idx]) {
-            result_ptr[idx] = std::numeric_limits<double>::quiet_NaN();  // Assigner NaN
-        } else {
-            // Calculer Γ(s) et Γ(s, x)
-            double gamma_val = gsl_sf_gamma(a_ptr[idx]);            // Γ(s)
-            double gamma_upper = gsl_sf_gamma_inc(a_ptr[idx], x_ptr[idx]);  // Γ(s, x)
-
-            // Vérifier si le résultat est valide
-            double gamma_lower = gamma_val - gamma_upper;           // γ(s, x)
-            if (!std::isfinite(gamma_lower)) {  // Vérifie si le résultat est infini ou NaN
-                gamma_lower = std::numeric_limits<double>::quiet_NaN();
-            }
-
-            result_ptr[idx] = gamma_lower;
-        }
+        result_ptr[idx] = gamma_lower_series(a_ptr[idx], x_ptr[idx]);  // Calcul pour chaque élément
     }
 
-    return result;
+    return result_array;  // Retourner le tableau de résultats
 }
 
 PYBIND11_MODULE(gamma_incomp, m) {
-    m.def("gamma_lower_incomplete_tensor", &gamma_lower_incomplete_tensor, 
-          "Calculer la fonction gamma incomplète inférieure non normalisée γ(s, x) pour des tenseurs a et x en utilisant GSL, en remplaçant les résultats invalides par NaN");
+    m.def("gamma_lower_incomplete_non_normalized", &gamma_lower_incomplete_non_normalized, 
+          "Calculer la fonction gamma incomplète inférieure non normalisée γ(a, x) pour des tableaux de mêmes dimensions en utilisant une expansion en série.");
 }

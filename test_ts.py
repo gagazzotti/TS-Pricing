@@ -20,7 +20,7 @@ class TestMellinTS(unittest.TestCase):
         ttm = 1.2
         option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
         ts_p_pricer = TemperedStablePricer(**ts_params)
-        price = ts_p_pricer.price(**option_params, N=30)
+        price = ts_p_pricer.price(**option_params, N=60)
         price_ref = 0.22968572289948497  # PROJ
         # self.assertAlmostEqual(price, price_ref)
         print(np.abs(price - price_ref))

@@ -8,6 +8,8 @@ import scipy
 import scipy.special
 from time import time
 
+np.set_printoptions(precision=16)
+
 # pylint: disable=all
 
 from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
@@ -19,7 +21,7 @@ from mellin_ts.pricing.upper_gamma.gamma_module import (
 )
 
 from mellin_ts.pricing.lower_gamma_vect.gamma_incomp import (
-    gamma_lower_incomplete_tensor,
+    gamma_lower_incomplete_non_normalized,
 )
 
 # pylint: enable=all
@@ -33,7 +35,7 @@ def gamma_lower_scipy(a, z):
 
 
 def gamma_lower_cpp(a, z):
-    return gamma_lower_incomplete_tensor(a, z)
+    return gamma_lower_incomplete_non_normalized(a, z)
 
 
 class TemperedStablePricer:
@@ -109,7 +111,9 @@ class TemperedStablePricer:
         n1 = np.arange(N)[:, None, None, None, None, None]
         n2 = np.arange(N)[None, :, None, None, None, None]
         n3 = np.arange(N)[None, None, :, None, None, None]
-        n4 = np.arange(N)[None, None, None, :, None, None]
+        n4 = np.arange(100)[
+            None, None, None, :, None, None
+        ]  # on peut mettre 80 partout pour essayer de voir coef par coef sur les 3
         taylor = (-1) ** (n1 + n2 + n3) / (
             factorial(n1) * factorial(n2) * factorial(n3) * factorial(n4)
         )
@@ -128,7 +132,6 @@ class TemperedStablePricer:
             * (self.beta_p / (self.beta_p + self.beta_m))
         )[:, 0, 0, :, :]
         a1 = pochhamer_symb * at_term * gamma_term * taylor
-        print("heho", a1[0, 0, 0, 0, 0])
         return a1
 
     def a2_vect_3_indexes(self, N: int, ttm, k):
@@ -179,7 +182,6 @@ class TemperedStablePricer:
         # piecwise
         low_gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
         # gamma_term in 0,0,0
-        low_gamma_term[0, 0, 0, :] = self.beta_p / (self.beta_m + self.beta_p)
 
         # other
         low_gamma_term = gamma(1 - n1 + self.beta_p * n2 + self.beta_m * n3) / (
@@ -191,7 +193,7 @@ class TemperedStablePricer:
                 np.exp(k_vec)
                 * (self.lambda_p - 1) ** (-n1 + self.beta_p * n2 + self.beta_m * n3)
                 * np.array(
-                    gamma_lower_incomplete_tensor(
+                    gamma_lower_cpp(
                         n1 - self.beta_p * n2 - self.beta_m * n3,
                         -(self.lambda_p - 1) * k_vec,
                     )
@@ -200,7 +202,7 @@ class TemperedStablePricer:
             - (
                 (self.lambda_p) ** (-n1 + self.beta_p * n2 + self.beta_m * n3)
                 * np.array(
-                    gamma_lower_incomplete_tensor(
+                    gamma_lower_cpp(
                         n1 - self.beta_p * n2 - self.beta_m * n3,
                         -(self.lambda_p) * k_vec,
                     )
@@ -208,14 +210,22 @@ class TemperedStablePricer:
             )
         ).astype(float)
 
+        # multiplication par e^{k}-1
+        low_gamma_term[0, 0, 0, :] = (
+            self.beta_p
+            / (self.beta_m + self.beta_p)
+            * (np.exp(k_vec[0, 0, 0]) - 1).astype(float)
+        )
+
         # gamma_term in >1,0,0
         low_gamma_term[1:, 0, 0, :] = 0
-        # multiplication par e^{k}-1
-        low_gamma_term[0, 0, 0] = low_gamma_term[0, 0, 0] * (
-            0 * np.exp(k_vec[0, 0, 0]) - 1
-        ).astype(float)
 
         a1 = taylor * pochhamer_symb * at_term
+        print(
+            "Args in inc gamma",
+            [0, 1, 0],
+            -(self.lambda_p - 1) * k[:, :, 0].item(),
+        )
         return -a1 * ulambda_term * low_gamma_term
 
     def a2_vect(self, N: int, ttm):
@@ -223,7 +233,7 @@ class TemperedStablePricer:
         n1 = np.arange(N)[:, None, None, None, None, None]
         n2 = np.arange(N)[None, :, None, None, None, None]
         n3 = np.arange(N)[None, None, :, None, None, None]
-        n4 = np.arange(N)[None, None, None, :, None, None]
+        n4 = np.arange(100)[None, None, None, :, None, None]
         taylor = (-1) ** (n1 + n2 + n3 + n4) / (
             factorial(n1) * factorial(n2) * factorial(n3) * factorial(n4)
         )
@@ -244,7 +254,7 @@ class TemperedStablePricer:
         n1 = np.arange(N)[:, None, None, None, None, None]
         n2 = np.arange(N)[None, :, None, None, None, None]
         n3 = np.arange(N)[None, None, :, None, None, None]
-        n4 = np.arange(N)[None, None, None, :, None, None]
+        n4 = np.arange(100)[None, None, None, :, None, None]
 
         #####################################################
         ################## SECOND SERIE #####################
@@ -258,16 +268,29 @@ class TemperedStablePricer:
         # attention 0* poiur test: a enlever
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
         ##
-        print(term1[0, 0, 0, 0])
         # separation
         serie1_true = factor_serie[:, None] * (term1 * exp_term).sum(axis=(0, 1, 2, 3))
 
         term1_3_index = self.a1_vect_3_indexes(N, ttm, k)
-        serie1_true_3 = factor_serie[:, None] * (term1_3_index).sum(axis=(0, 1, 2))
+        serie1 = factor_serie[:, None] * (term1_3_index).sum(axis=(0, 1, 2))
 
+        # Comparaison entre la serie 1 à 3 indices et celle à 4
+        error_tensor_1 = np.abs((term1 * exp_term).sum(axis=3) - term1_3_index)
+        print("[0,1,0] true", (term1 * exp_term).sum(axis=3)[0, 1, 0])
         print(
-            "COMPARISON", (term1 * exp_term)[10, 8, 7, :].sum(), term1_3_index[10, 8, 7]
+            "COMPARISON ARGMAX",
+            np.unravel_index(np.argmax(error_tensor_1), error_tensor_1.shape),
         )
+        print(
+            "COMPARISON LAST VALUES DIFF",
+            np.abs((term1 * exp_term).sum(axis=3) - term1_3_index)[-1, -1, -1],
+        )
+        print("COMPARISON VALUES", serie1_true.item(), serie1.item())
+        print(
+            "COMPARISON MAX COMP.",
+            np.max(np.abs((term1 * exp_term).sum(axis=3) - term1_3_index)),
+        )
+        print(error_tensor_1[:2, :2, :2])
 
         #####################################################
         ################## SECOND SERIE #####################
@@ -280,7 +303,6 @@ class TemperedStablePricer:
             * self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
             * (-k) ** (1 + n1 + n4)
         )
-        print("term2", term2.shape)
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
         serie2_true = factor_serie[:, None] * (term2 * exp_term).sum(axis=(0, 1, 2, 3))
         print("Time 4 indexes", time() - t0)
@@ -288,17 +310,20 @@ class TemperedStablePricer:
 
         # 3 indexes
         term2_3_index = self.a2_vect_3_indexes(N, ttm, k)
-        print("**", term2_3_index.shape)
         # gérer le term lambda-1 - lambda en gammainc - gamma inc
         serie2 = factor_serie[:, None] * (term2_3_index).sum(axis=(0, 1, 2))
+
         print("Time 3 indexes", time() - t0)
-        print(serie2.shape)
+        print("Error Serie 2", np.abs(serie2_true - serie2))
+        print("Error Serie 1", np.abs(serie1_true - serie1))
         ###
         serie = (term1 + term2) * exp_term
         # TODO: faire les multiplications séparémenent pour mettre term1*factor_serie et remplacer un indice
         serie = factor_serie[:, None] * serie.sum(axis=(0, 1, 2, 3))
-        print(serie2, serie2_true)
-        return serie
+        # comparaison valeur finale
+        print("Series vect", serie2 + serie1, "vs", serie)
+        return serie1 + serie2
+        # return serie1_true + serie2_true
 
     def serie2_vect(self, k: float, ttm: float, N: int):
         k_vec = k[0]
