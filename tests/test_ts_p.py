@@ -1,13 +1,18 @@
+"""TBD"""
+
 import unittest
-import numpy as np
-from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-import time
 import warnings
+
+import numpy as np
+
+from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
 
 
 class TestMellinTSp(unittest.TestCase):
+    """TBD"""
 
     def test_one_sided(self):
+        """TBD"""
         warnings.simplefilter("ignore", category=DeprecationWarning)
 
         ts_p_params = dict(alpha_p=0.44, beta_p=0.1 + np.exp(1) / 10, lambda_p=1.4)
@@ -23,8 +28,8 @@ class TestMellinTSp(unittest.TestCase):
         price_ref = 0.18769860488552348  # PROJ
         self.assertAlmostEqual(price, price_ref)
         self.assertAlmostEqual(price_vect[0, 0, 0], price_ref)
-
-        print("\n Mellin One sided => Ok!")
+        diff = np.abs(price_vect[0, 0, 0] - price_ref)
+        print(f"\n Mellin One sided => Ok! (diff:{diff})")
 
 
 if __name__ == "__main__":

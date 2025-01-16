@@ -1,7 +1,8 @@
 import warnings
+
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import matplotlib.pyplot as plt
 import scienceplots
 
 from mellin_ts.densities.TSDensity import TSDensity
@@ -16,7 +17,7 @@ def get_mellin_dens(
 ) -> dict:
     dens = {}
     for n in range_n:
-        dens[n] = density.density_Mellin(x, n=n)
+        dens[n] = density.density_mellin(x, n=n)
     return dens
 
 
@@ -36,7 +37,7 @@ def plot_mellin(ax: plt.Axes, densities: dict, x: npt.NDArray[np.float64]):
 
 def plot_fourier(ax1: plt.Axes, density: TSDensity, x: npt.NDArray[np.float64]):
     x_fourier = np.arange(np.min(x), np.max(x), 1e-2)
-    dens_fourier = density.density_Fourier(x_fourier, bounds=1e3, du=1e-1)
+    dens_fourier = density.density_fourier(x_fourier, bounds=1e3, du=1e-1)
     ax1.plot(x_fourier, dens_fourier, color="blue", label="Fourier inversion")
 
 

@@ -7,6 +7,7 @@ from tests.test_ts_p import TestMellinTSp
 
 # Créer une suite de tests
 def test_suite():
+    """TBD"""
     suite = unittest.TestSuite()
     for test in (TestMellinTS, TestMellinTSp):
         suite.addTest(unittest.TestLoader().loadTestsFromTestCase(test))

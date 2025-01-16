@@ -8,4 +8,10 @@
 - faire computational time comme mtn mais avec différent $N$ pour les deux
 - normal que ce soit à 10-13 et pas 10-15 (on regarde en erreur relative!!!!!!!!)
 - faire un test pour les densités (éloignés de 0....)
-- faire le TS one sided 
+
+
+# faire la fonction gamma c++ avec en arg N
+# nom des fichiers snake case
+# vérifier que les formules sont valides pour différents temps
+# convertir en fichier de test test_BG_vs_nb.py
+# avoir les prix ref par PROJ pricer (valeurs en dur en commentaires)

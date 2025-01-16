@@ -1,27 +1,26 @@
 """Importing modules"""
 
 import warnings
+from time import time
+
 import numpy as np
 import numpy.typing as npt
-from scipy.special import gamma, factorial, poch
 import scipy
 import scipy.special
-from time import time
+from scipy.special import factorial, gamma, poch
 
 np.set_printoptions(precision=16)
 
 # pylint: disable=all
 
-from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
-    gamma_upper_incomplete as gamma_ui_vect,
+from mellin_ts.pricing.lower_gamma_vect.gamma_incomp import (
+    gamma_lower_incomplete_non_normalized,
 )
-
 from mellin_ts.pricing.upper_gamma.gamma_module import (
     gamma_upper_incomplete as gamma_ui,
 )
-
-from mellin_ts.pricing.lower_gamma_vect.gamma_incomp import (
-    gamma_lower_incomplete_non_normalized,
+from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
+    gamma_upper_incomplete as gamma_ui_vect,
 )
 
 # pylint: enable=all
@@ -221,11 +220,7 @@ class TemperedStablePricer:
         low_gamma_term[1:, 0, 0, :] = 0
 
         a1 = taylor * pochhamer_symb * at_term
-        print(
-            "Args in inc gamma",
-            [0, 1, 0],
-            -(self.lambda_p - 1) * k[:, :, 0].item(),
-        )
+
         return -a1 * ulambda_term * low_gamma_term
 
     def a2_vect(self, N: int, ttm):
@@ -257,73 +252,41 @@ class TemperedStablePricer:
         n4 = np.arange(100)[None, None, None, :, None, None]
 
         #####################################################
-        ################## SECOND SERIE #####################
+        ################## 4 indexes SERIES #################
         #####################################################
+        if False:
+            t0 = time()
+            term1 = (
+                self.a1_vect(N, ttm)
+                * self.ulambda**n1
+                * (-k) ** (n1 - self.beta_p * n2 - self.beta_m * n3 + n4)
+            )
+            term2 = (
+                self.a2_vect(N, ttm)
+                * self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
+                * (-k) ** (1 + n1 + n4)
+            )
+            exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
 
-        term1 = (
-            self.a1_vect(N, ttm)
-            * self.ulambda**n1
-            * (-k) ** (n1 - self.beta_p * n2 - self.beta_m * n3 + n4)
-        )
-        # attention 0* poiur test: a enlever
-        exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
-        ##
-        # separation
-        serie1_true = factor_serie[:, None] * (term1 * exp_term).sum(axis=(0, 1, 2, 3))
-
-        term1_3_index = self.a1_vect_3_indexes(N, ttm, k)
-        serie1 = factor_serie[:, None] * (term1_3_index).sum(axis=(0, 1, 2))
-
-        # Comparaison entre la serie 1 à 3 indices et celle à 4
-        error_tensor_1 = np.abs((term1 * exp_term).sum(axis=3) - term1_3_index)
-        print("[0,1,0] true", (term1 * exp_term).sum(axis=3)[0, 1, 0])
-        print(
-            "COMPARISON ARGMAX",
-            np.unravel_index(np.argmax(error_tensor_1), error_tensor_1.shape),
-        )
-        print(
-            "COMPARISON LAST VALUES DIFF",
-            np.abs((term1 * exp_term).sum(axis=3) - term1_3_index)[-1, -1, -1],
-        )
-        print("COMPARISON VALUES", serie1_true.item(), serie1.item())
-        print(
-            "COMPARISON MAX COMP.",
-            np.max(np.abs((term1 * exp_term).sum(axis=3) - term1_3_index)),
-        )
-        print(error_tensor_1[:2, :2, :2])
+            # serie1_true = factor_serie[:, None] * (term1 * exp_term).sum(axis=(0, 1, 2, 3))
+            # serie2_true = factor_serie[:, None] * (term2 * exp_term).sum(axis=(0, 1, 2, 3))
+            serie = (term1 + term2) * exp_term
+            serie = factor_serie[:, None] * serie.sum(axis=(0, 1, 2, 3))
+            print("Time 4 indexes", time() - t0)
 
         #####################################################
         ################## SECOND SERIE #####################
         #####################################################
-
-        # 4 indexes
-        t0 = time()
-        term2 = (
-            self.a2_vect(N, ttm)
-            * self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
-            * (-k) ** (1 + n1 + n4)
-        )
-        exp_term = np.exp(k) * (self.lambda_p - 1) ** n4 - self.lambda_p**n4
-        serie2_true = factor_serie[:, None] * (term2 * exp_term).sum(axis=(0, 1, 2, 3))
-        print("Time 4 indexes", time() - t0)
-        t0 = time()
 
         # 3 indexes
+        # t0 = time()
+        term1_3_index = self.a1_vect_3_indexes(N, ttm, k)
+        serie1 = factor_serie[:, None] * (term1_3_index).sum(axis=(0, 1, 2))
         term2_3_index = self.a2_vect_3_indexes(N, ttm, k)
-        # gérer le term lambda-1 - lambda en gammainc - gamma inc
         serie2 = factor_serie[:, None] * (term2_3_index).sum(axis=(0, 1, 2))
-
-        print("Time 3 indexes", time() - t0)
-        print("Error Serie 2", np.abs(serie2_true - serie2))
-        print("Error Serie 1", np.abs(serie1_true - serie1))
-        ###
-        serie = (term1 + term2) * exp_term
-        # TODO: faire les multiplications séparémenent pour mettre term1*factor_serie et remplacer un indice
-        serie = factor_serie[:, None] * serie.sum(axis=(0, 1, 2, 3))
-        # comparaison valeur finale
-        print("Series vect", serie2 + serie1, "vs", serie)
+        serie = serie1 + serie2
+        # print("Time 3 indexes", time() - t0)
         return serie1 + serie2
-        # return serie1_true + serie2_true
 
     def serie2_vect(self, k: float, ttm: float, N: int):
         k_vec = k[0]

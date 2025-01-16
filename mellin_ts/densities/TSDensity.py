@@ -1,14 +1,22 @@
+"""ts density"""
+
 import warnings
+
 import numpy as np
 import numpy.typing as npt
-from scipy.special import gamma, factorial, poch
+
+# pylint: disable=W0611
 import scienceplots
 
+# pylint: enable=W0611
+from scipy.special import factorial, gamma, poch
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 class TSDensity:
+    """TBD"""
+
     def __init__(
         self,
         alpha_p: float,
@@ -61,6 +69,7 @@ class TSDensity:
         n: int = 20,
         positive: bool = True,
     ):
+        """TBD"""
         if positive:
             lambda_p = self.lambda_p
             beta_p = self.beta_p
@@ -114,15 +123,17 @@ class TSDensity:
         dens = dens.sum(axis=(0, 1, 2))
         return dens
 
-    def density_Mellin(self, points: npt.NDArray[np.float64], n: int = 20):
+    def density_mellin(self, points: npt.NDArray[np.float64], n: int = 20):
+        """TBD"""
         dens = np.zeros_like(points)
         dens[points > 0] = self.density_signed(points[points > 0], n=n, positive=True)
         dens[points < 0] = self.density_signed(-points[points < 0], n=n, positive=False)
         return dens
 
-    def density_Fourier(
+    def density_fourier(
         self, points: npt.NDArray[np.float64], du: float = 1e-2, bounds: float = 3e3
     ):
+        """TBD"""
         u = np.arange(-bounds, bounds, du)[None, :]
         integrand = np.exp(
             self.alpha_p
