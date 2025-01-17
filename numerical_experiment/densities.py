@@ -17,28 +17,71 @@ def get_mellin_dens(
 ) -> dict:
     dens = {}
     for n in range_n:
+        print(f"Mellin with order {n}")
         dens[n] = density.density_mellin(x, n=n)
     return dens
 
 
-def plot_mellin(ax: plt.Axes, densities: dict, x: npt.NDArray[np.float64]):
-    markers = ["d", "o", "x"]
-    i = 0
+def plot_mellin(
+    ax: plt.Axes, densities: dict, x: npt.NDArray[np.float64], threshold=5e-1
+):
+    n_max = max(list(densities.keys()))
     for n, dens in densities.items():
-        ax.scatter(
+        # Identify regions where the absolute value of the function exceeds the threshold
+        above_threshold = (dens > threshold) | (dens < 0)
+
+        # Identify the last valid point before exceeding the threshold
+        start_transitions = np.where((~above_threshold[:-1]) & above_threshold[1:])[0]
+        # Identify the first valid point after coming back below the threshold
+        end_transitions = np.where((above_threshold[:-1]) & ~above_threshold[1:])[0]
+
+        # Mask y values that exceed the threshold
+        y_masked = np.copy(dens)
+        y_masked[above_threshold] = np.nan
+
+        # Plot the function
+        ax.plot(
             x,
-            dens,
-            marker=markers[i],
-            color="black",
+            y_masked,
             label=rf"Series expansion $n={n}$",
+            color="blue",
+            alpha=n / n_max,
         )
-        i += 1
+        # print(print(np.argwhere(y_masked < 0)))
+
+        # Add red points at the last valid values before exceeding the threshold
+        for i in start_transitions:
+            ax.plot(
+                x[i],
+                dens[i],
+                "ro",
+                markersize=3,
+            )
+        # Add red points at the first valid values after dropping below the threshold
+        for i in end_transitions:
+            ax.plot(
+                x[i + 1],
+                dens[i + 1],
+                "ro",
+                markersize=3,
+            )
+        # ax.plot(
+        #     x,
+        #     dens,
+        #     "b",
+        #     label=rf"Series expansion $n={n}$",
+        #     alpha=n / n_max,
+        # )
 
 
 def plot_fourier(ax1: plt.Axes, density: TSDensity, x: npt.NDArray[np.float64]):
-    x_fourier = np.arange(np.min(x), np.max(x), 1e-2)
+    x_fourier = np.arange(np.min(x), np.max(x), 5e-2)
+    print("Inverting Fourier...")
     dens_fourier = density.density_fourier(x_fourier, bounds=1e3, du=1e-1)
-    ax1.plot(x_fourier, dens_fourier, color="blue", label="Fourier inversion")
+    print("Fourier inverted!")
+    ax1.plot(
+        x_fourier, dens_fourier, color="black", alpha=0.5, label="Fourier inversion"
+    )
 
 
 def plot_std_zones(ax: plt.Axes, density: TSDensity, n_std: int = 3):
@@ -81,8 +124,8 @@ def build_figure(density: TSDensity, range_n: list[int], x: npt.NDArray[np.float
     ax2.set_xlim(ax1.get_xlim())
     ax2.set_ylim(ax1.get_ylim())
     ax2.grid()
-    plot_mellin(ax1, densities, x)
     plot_fourier(ax1, density, x)
+    plot_mellin(ax1, densities, x)
     plot_std_zones(ax2, density)
     ax1.legend(loc="upper left")
     plt.savefig("numerical_experiment/output/densities.png", dpi=600)
@@ -99,8 +142,9 @@ def main():
         lambda_m=0.4,
     )
     densTS = TSDensity(**ts_params)
-    x = np.arange(-7.55, 7.6, 5 * 1e-1)
-    range_n = [20, 30, 60]
+    x = np.arange(-7.0, 7.0, 5e-2)
+    # x = x[np.abs(x) > 1e-1]
+    range_n = [20, 40]
     build_figure(densTS, range_n, x)
 
 

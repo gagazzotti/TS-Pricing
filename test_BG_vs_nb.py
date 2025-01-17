@@ -1,15 +1,12 @@
 from time import time
+
 import numpy as np
-
-from mellin_ts.pricing.BGPricer import BGPricer
-
-
-from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.model.levy.BilateralGamma import BilateralGamma
-
-
+from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
+
+from mellin_ts.pricing.BGPricer import BGPricer
 
 
 def main():
@@ -21,9 +18,9 @@ def main():
     lambdam = 0.4
     bg_pricer = BGPricer(alphap, lambdap, alpham, lambdam)
     t0 = time()
-    # price = bg_pricer.price_eur(S0, K, r, q, ttm, N=100)
+    price = bg_pricer.price_eur(S0, K, r, q, ttm, N=100)
     price_series = bg_pricer.price_eur_diff(S0, K, r, q, ttm, N=100)
-
+    print("Prices", price, price_series)
     t_series = time() - t0
     print("Price", price_series)
     print("Time", t_series)
@@ -46,7 +43,7 @@ def main():
         times.append(t)
     print(price)
     print("Time proj", np.mean(times), 1.96 * np.std(times) / 1**0.5)
-    print("Error", price_series-price)
+    print("Error", price_series - price)
 
 
 if __name__ == "__main__":
