@@ -133,6 +133,25 @@ class TemperedStablePricer:
         a1 = pochhamer_symb * at_term * gamma_term * taylor
         return a1
 
+    def a2_vect(self, N: int, ttm):
+        ttm_vec = np.array(ttm)[None, None, None, :, None]
+        n1 = np.arange(N)[:, None, None, None, None, None]
+        n2 = np.arange(N)[None, :, None, None, None, None]
+        n3 = np.arange(N)[None, None, :, None, None, None]
+        n4 = np.arange(100)[None, None, None, :, None, None]
+        taylor = (-1) ** (n1 + n2 + n3 + n4) / (
+            factorial(n1) * factorial(n2) * factorial(n3) * factorial(n4)
+        )
+        pochhamer_symb = poch(1 + self.beta_p * n2, n1) / (-1 - n1 - n4)
+        gamma_term = gamma(-1 - n1 - self.beta_p * n2 - self.beta_m * n3) / (
+            gamma(-self.beta_p * n2) * gamma(-self.beta_m * n3)
+        )
+        gamma_term[:, 0, 0, :] = 0
+        # time term
+        at_term = (self.ap * ttm_vec) ** n2 * (self.am * ttm_vec) ** n3
+        a2 = taylor * pochhamer_symb * gamma_term * at_term
+        return a2
+
     def a2_vect_3_indexes(self, N: int, ttm, k):
         ttm_vec = np.array(ttm)[None, None, None, :, None]
         n1 = np.arange(N)[:, None, None, None, None]
@@ -222,25 +241,6 @@ class TemperedStablePricer:
         a1 = taylor * pochhamer_symb * at_term
 
         return -a1 * ulambda_term * low_gamma_term
-
-    def a2_vect(self, N: int, ttm):
-        ttm_vec = np.array(ttm)[None, None, None, :, None]
-        n1 = np.arange(N)[:, None, None, None, None, None]
-        n2 = np.arange(N)[None, :, None, None, None, None]
-        n3 = np.arange(N)[None, None, :, None, None, None]
-        n4 = np.arange(100)[None, None, None, :, None, None]
-        taylor = (-1) ** (n1 + n2 + n3 + n4) / (
-            factorial(n1) * factorial(n2) * factorial(n3) * factorial(n4)
-        )
-        pochhamer_symb = poch(1 + self.beta_p * n2, n1) / (-1 - n1 - n4)
-        gamma_term = gamma(-1 - n1 - self.beta_p * n2 - self.beta_m * n3) / (
-            gamma(-self.beta_p * n2) * gamma(-self.beta_m * n3)
-        )
-        gamma_term[:, 0, 0, :] = 0
-        # time term
-        at_term = (self.ap * ttm_vec) ** n2 * (self.am * ttm_vec) ** n3
-        a2 = taylor * pochhamer_symb * gamma_term * at_term
-        return a2
 
     def serie1_vect(self, k: float, ttm: float, N: int):
         ttm_vec = np.array(ttm)[None, None, None, :, None]
