@@ -28,6 +28,8 @@ from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
+# TODO: enlever gamma lower scipy
+
 
 def gamma_lower_scipy(a, z):
     return scipy.special.gamma(a) * (1 - scipy.special.gammaincc(a, z))
