@@ -246,7 +246,7 @@ class TemperedStablePricer:
 
     def serie1_vect(self, k: float, ttm: float, N: int):
         ttm_vec = np.array(ttm)[None, None, None, :, None]
-        factor_serie = np.exp(self.gamma * ttm)
+        factor_serie = 1  # np.exp(self.gamma * ttm)
         # faire la multiplication seuelement à la fin
         n1 = np.arange(N)[:, None, None, None, None, None]
         n2 = np.arange(N)[None, :, None, None, None, None]
@@ -283,9 +283,9 @@ class TemperedStablePricer:
         # 3 indexes
         # t0 = time()
         term1_3_index = self.a1_vect_3_indexes(N, ttm, k)
-        serie1 = factor_serie[:, None] * (term1_3_index).sum(axis=(0, 1, 2))
+        serie1 = (term1_3_index).sum(axis=(0, 1, 2))
         term2_3_index = self.a2_vect_3_indexes(N, ttm, k)
-        serie2 = factor_serie[:, None] * (term2_3_index).sum(axis=(0, 1, 2))
+        serie2 = (term2_3_index).sum(axis=(0, 1, 2))
         serie = serie1 + serie2
         # print("Time 3 indexes", time() - t0)
         return serie1 + serie2
@@ -296,18 +296,19 @@ class TemperedStablePricer:
         n1 = np.arange(N)[:, None, None, None, None]
         n2 = np.arange(N)[None, :, None, None, None]
         n3 = np.arange(N)[None, None, :, None, None]
-        taylor_term = -((-1) ** (n1 + n2)) / (factorial(n1) * factorial(n2))
+        taylor_term = -((-1) ** (n2 + n3)) / (factorial(n2) * factorial(n3))
         gamma_term = np.zeros((N, N, N))
-        gamma_term = gamma(-self.beta_p * n1 - self.beta_m * n2 + n3) / (
-            gamma(1 - self.beta_p * n1 + n3) * gamma(-self.beta_m * n2)
+        gamma_term = gamma(-self.beta_p * n2 - self.beta_m * n3 + n1) / (
+            gamma(1 - self.beta_p * n2 + n1) * gamma(-self.beta_m * n3)
         )
         gamma_term[0, 0, 0] = self.beta_m / (self.beta_m + self.beta_p)
-        ulambda_term = self.ulambda ** (self.beta_p * n1 + self.beta_m * n2 - n3)
-        exp_term = np.exp(k_vec) * (self.lambda_p - 1) ** n3 - self.lambda_p**n3
-        at = (self.ap * ttm_vec) ** n1 * (self.am * ttm_vec) ** n2
+        ulambda_term = self.ulambda ** (self.beta_p * n2 + self.beta_m * n3 - n1)
+        exp_term = np.exp(k_vec) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
+        at = (self.ap * ttm_vec) ** n2 * (self.am * ttm_vec) ** n3
         serie = (taylor_term * gamma_term * exp_term * at * ulambda_term).sum(
             axis=(0, 1, 2)
         )
+
         return serie
 
     def price(
@@ -346,7 +347,7 @@ class TemperedStablePricer:
         # # factors
         factor_serie = np.exp(self.gamma * ttm_vec)
         factor = K * np.exp(-r * ttm_vec)
-        call_price = factor * (constant_term + serie1 + factor_serie * serie2)
+        call_price = factor * (constant_term + factor_serie * (serie1 + serie2))
         ##
         call_price = call_price[0, 0, 0, 0]
         if single_strike and single_ttm:
