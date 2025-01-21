@@ -20,3 +20,4 @@
 # BG prices with T
 # 1. tout exprimer en gamma lower
 # 2. faire la fonction gamma c++ avec en arg N
+# 3.corriger le nom alpha_m dans proj pour BG
