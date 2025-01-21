@@ -11,7 +11,7 @@ import numpy.typing as npt
 from scipy.special import factorial, gamma, hyp2f1
 
 # pylint: disable=all
-from src.mellin_ts.pricing.lower_gamma.gamma_incomp import (
+from src.mellin_ts.gamma_func_cpp.lower_gamma.gamma_incomp import (
     gamma_lower_incomplete_non_normalized as gamma_lower,
 )
 

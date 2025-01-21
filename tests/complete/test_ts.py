@@ -9,7 +9,7 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.gamma_func_cpp.TSPricer import TemperedStablePricer
 
 
 class TestMellinTS(unittest.TestCase):
