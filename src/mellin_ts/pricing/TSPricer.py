@@ -1,4 +1,4 @@
-"""Importing modules"""
+"""TBD"""
 
 import warnings
 from time import time
@@ -87,11 +87,7 @@ class TemperedStablePricer:
         )
         return -(zeta_p + zeta_m)
 
-    def a2_3_indexes(self, N: int, ttm, k):
-        # ttm_vec = np.array(ttm)[None, None, None, :, None]
-        n1 = np.arange(N)[:, None, None]
-        n2 = np.arange(N)[None, :, None]
-        n3 = np.arange(N)[None, None, :]
+    def a2_3_indexes(self, ttm, k, n1, n2, n3):
         taylor = (-1) ** (n1 + n2 + n3) / (
             sc.factorial(n1) * sc.factorial(n2) * sc.factorial(n3)
         )
@@ -116,10 +112,7 @@ class TemperedStablePricer:
         full_a2 = -a2 * function_term * ulambda_term
         return full_a2
 
-    def a1_3_indexes(self, N: int, ttm, k):
-        n1 = np.arange(N)[:, None, None]
-        n2 = np.arange(N)[None, :, None]
-        n3 = np.arange(N)[None, None, :]
+    def a1_3_indexes(self, ttm, k, n1, n2, n3):
         taylor = (-1) ** (n1 + n2 + n3) / (
             sc.factorial(n1) * sc.factorial(n2) * sc.factorial(n3)
         )
@@ -168,27 +161,27 @@ class TemperedStablePricer:
         full_a1 = -a1 * ulambda_term * low_gamma_term
         return full_a1
 
-    def serie1(self, k: float, ttm: float, N: int):
-        term1_3_index = self.a1_3_indexes(N, ttm, k)
+    def serie1(
+        self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
+    ):
+        term1_3_index = self.a1_3_indexes(ttm, k, n1, n2, n3)
         serie1 = (term1_3_index).sum(axis=(0, 1, 2))
-        term2_3_index = self.a2_3_indexes(N, ttm, k)
+        term2_3_index = self.a2_3_indexes(ttm, k, n1, n2, n3)
         serie2 = (term2_3_index).sum(axis=(0, 1, 2))
         serie = serie1 + serie2
         return serie
 
-    def serie2(self, k: float, ttm: float, N: int):
-        k_vec = float(k)
-        n1 = np.arange(N)[:, None, None]
-        n2 = np.arange(N)[None, :, None]
-        n3 = np.arange(N)[None, None, :]
+    def serie2(
+        self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
+    ):
         taylor_term = -((-1) ** (n2 + n3)) / (sc.factorial(n2) * sc.factorial(n3))
-        gamma_term = np.zeros((N, N, N))
+        gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
         gamma_term = sc.gamma(-self.beta_p * n2 - self.beta_m * n3 + n1) / (
             sc.gamma(1 - self.beta_p * n2 + n1) * sc.gamma(-self.beta_m * n3)
         )
         gamma_term[0, 0, 0] = self.beta_m / (self.beta_m + self.beta_p)
         ulambda_term = self.ulambda ** (self.beta_p * n2 + self.beta_m * n3 - n1)
-        exp_term = np.exp(k_vec) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
+        exp_term = np.exp(k) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
         at = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
         serie = (taylor_term * gamma_term * exp_term * at * ulambda_term).sum(
             axis=(0, 1, 2)
@@ -210,8 +203,11 @@ class TemperedStablePricer:
         elif k == 0:
             raise NotImplementedError("Negative moneyness not implemented so far.")
         else:
-            serie1 = self.serie1(k, ttm, N)
-            serie2 = self.serie2(k, ttm, N)
+            n1 = np.arange(N)[:, None, None]
+            n2 = np.arange(N)[None, :, None]
+            n3 = np.arange(N)[None, None, :]
+            serie1 = self.serie1(k, ttm, n1, n2, n3)
+            serie2 = self.serie2(k, ttm, n1, n2, n3)
             constant_term = np.exp(k - self.zeta * ttm) - 1
             factor_serie = np.exp(self.gamma * ttm)
             factor = K * np.exp(-r * ttm)

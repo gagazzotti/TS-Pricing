@@ -1,9 +1,5 @@
-"""Importing modules"""
+"""TBD"""
 
-# import time
-# import tqdm
-# import mpmath
-# import itertools as it
 import warnings
 
 import numpy as np
