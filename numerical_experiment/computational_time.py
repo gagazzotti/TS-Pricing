@@ -1,18 +1,17 @@
 """importing modules"""
 
 import time
-import numpy as np
-import tqdm
 
 # import numpy.typing as npt
 import matplotlib.pyplot as plt
+import numpy as np
 
 # from matplotlib.ticker import FuncFormatter
 import scienceplots
+import tqdm
 
-
-from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-from mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 

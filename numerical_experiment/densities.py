@@ -5,7 +5,7 @@ import numpy as np
 import numpy.typing as npt
 import scienceplots
 
-from mellin_ts.densities.TSDensity import TSDensity
+from src.mellin_ts.densities.TSDensity import TSDensity
 
 plt.style.use("science")
 

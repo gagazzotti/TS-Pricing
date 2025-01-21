@@ -1,27 +1,24 @@
 """importing modules"""
 
 import time
+
 import numpy as np
 import pandas as pd
-import tqdm
 
 # import numpy.typing as npt
 # import matplotlib.pyplot as plt
 import scienceplots
-from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
+import tqdm
 from fypy.model.levy.TemperedStable import TemperedStable
-
-
+from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
+from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+
 # from matplotlib.ticker import FuncFormatter
-
 # import time
-
-from mellin_ts.pricing.TSPricer import TemperedStablePricer
-from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-
+from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 # plt.style.use(["science"])
 pd.set_option("display.precision", 8)

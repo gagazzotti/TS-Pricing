@@ -1,23 +1,18 @@
 """importing modules"""
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import matplotlib.pyplot as plt
 import scienceplots
-
 from fypy.model.levy.TemperedStable import TemperedStable
-
-from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
-from fypy.pricing.fourier.LewisEuropeanPricer import LewisEuropeanPricer
 from fypy.pricing.fourier.HilbertEuropeanPricer import HilbertEuropeanPricer
-
-
+from fypy.pricing.fourier.LewisEuropeanPricer import LewisEuropeanPricer
+from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from mellin_ts.pricing.TSPricer import TemperedStablePricer
-from mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-
+from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 

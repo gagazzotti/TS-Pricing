@@ -11,10 +11,10 @@ import numpy.typing as npt
 from scipy.special import factorial, gamma
 
 # pylint: disable=all
-from mellin_ts.pricing.upper_gamma.gamma_module import (
+from src.mellin_ts.pricing.upper_gamma.gamma_module import (
     gamma_upper_incomplete as gamma_ui,
 )
-from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
+from src.mellin_ts.pricing.upper_gamma_vect.gamma_module import (
     gamma_upper_incomplete as gamma_ui_vect,
 )
 
