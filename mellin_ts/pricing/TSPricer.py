@@ -206,10 +206,15 @@ class TemperedStablePricer:
         N: int = 5,
     ):
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
-        serie1 = self.serie1(k, ttm, N)
-        serie2 = self.serie2(k, ttm, N)
-        constant_term = np.exp(k - self.zeta * ttm) - 1
-        factor_serie = np.exp(self.gamma * ttm)
-        factor = K * np.exp(-r * ttm)
-        call_price = factor * (constant_term + factor_serie * (serie1 + serie2))
-        return float(call_price)
+        if k > 0:
+            raise NotImplementedError("Negative moneyness not implemented so far.")
+        elif k == 0:
+            raise NotImplementedError("Negative moneyness not implemented so far.")
+        else:
+            serie1 = self.serie1(k, ttm, N)
+            serie2 = self.serie2(k, ttm, N)
+            constant_term = np.exp(k - self.zeta * ttm) - 1
+            factor_serie = np.exp(self.gamma * ttm)
+            factor = K * np.exp(-r * ttm)
+            call_price = factor * (constant_term + factor_serie * (serie1 + serie2))
+            return float(call_price)

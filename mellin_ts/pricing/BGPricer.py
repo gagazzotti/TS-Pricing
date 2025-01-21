@@ -354,6 +354,11 @@ class BGPricer:
         # time_verbose=True,
     ):
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
-        serie = self.serie_EUR_1(k, ttm, N)
-        call_price = self.mbg * K * np.exp(-r * ttm) * serie
-        return call_price
+        if k > 0:
+            raise NotImplementedError("Negative moneyness not implemented so far.")
+        elif k == 0:
+            raise NotImplementedError("Negative moneyness not implemented so far.")
+        else:
+            serie = self.serie_EUR_1(k, ttm, N)
+            call_price = self.mbg * K * np.exp(-r * ttm) * serie
+            return call_price
