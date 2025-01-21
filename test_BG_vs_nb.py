@@ -38,12 +38,12 @@ def main():
     times = []
     for _ in range(1):
         t0_proj = time()
-        price = proj_pricer.price(T=ttm, K=K, is_call=True)
+        proj_price = proj_pricer.price(T=ttm, K=K, is_call=True)
         t = time() - t0_proj
         times.append(t)
-    print(price)
+    print(proj_price)
     print("Time proj", np.mean(times), 1.96 * np.std(times) / 1**0.5)
-    print("Error", price_series - price)
+    print("Error", price_series - proj_price)
 
 
 if __name__ == "__main__":

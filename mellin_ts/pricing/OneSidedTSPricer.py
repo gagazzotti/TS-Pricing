@@ -5,9 +5,10 @@
 # import mpmath
 # import itertools as it
 import warnings
+
 import numpy as np
 import numpy.typing as npt
-from scipy.special import gamma, factorial
+from scipy.special import factorial, gamma
 
 # pylint: disable=all
 from mellin_ts.pricing.upper_gamma.gamma_module import (
@@ -17,6 +18,7 @@ from mellin_ts.pricing.upper_gamma_vect.gamma_module import (
     gamma_upper_incomplete as gamma_ui_vect,
 )
 
+# TODO: changer gamma upper par gamma - gamma lower
 
 # pylint: enable=all
 
@@ -91,7 +93,6 @@ class OneSidedTemperedStablePricer:
         serie = self.serie(k, ttm, N)
         call_price = K * np.exp((self.gamma - r) * ttm) * serie
         return call_price
-    
 
     def serie(
         self,
@@ -99,7 +100,6 @@ class OneSidedTemperedStablePricer:
         ttm: float | npt.NDArray[np.float64],
         N: int,
     ):
-
         n_vec = np.arange(0, N)
 
         coef_vect = (-self.ap * ttm) ** n_vec / (
@@ -148,7 +148,6 @@ class OneSidedTemperedStablePricer:
         ttm: float | npt.NDArray[np.float64],
         N: int,
     ):
-
         n_vec = np.arange(0, N)[:, None, None]
 
         coef_vect = (-self.ap * ttm) ** n_vec / (
@@ -169,4 +168,3 @@ class OneSidedTemperedStablePricer:
         )
         call_price = (coef_vect * diff_vect).sum(axis=(0))
         return call_price
-
