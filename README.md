@@ -10,7 +10,6 @@
 - faire un test pour les densités (éloignés de 0....)
 
 
-# faire la fonction gamma c++ avec en arg N
 # nom des fichiers snake case
 # vérifier que les formules sont valides pour différents temps
 # convertir en fichier de test test_BG_vs_nb.py
@@ -18,3 +17,5 @@
 # enlever les TBD (Ctrl+F)
 # regarder les todo
 # implement itm, atm
+# 1. tout exprimer en gamma lower
+# 2. faire la fonction gamma c++ avec en arg N
