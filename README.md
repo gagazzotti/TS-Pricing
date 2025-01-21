@@ -15,3 +15,6 @@
 # vérifier que les formules sont valides pour différents temps
 # convertir en fichier de test test_BG_vs_nb.py
 # avoir les prix ref par PROJ pricer (valeurs en dur en commentaires)
+# enlever les TBD (Ctrl+F)
+# regarder les todo
+# implement itm, atm
