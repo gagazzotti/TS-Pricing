@@ -1,8 +1,10 @@
+"""TBD"""
+
 import unittest
 
 # Importer les modules de tests dans le même dossier
-from tests.test_ts import TestMellinTS
-from tests.test_ts_p import TestMellinTSp
+from tests.quick.test_ts import TestMellinTS
+from tests.quick.test_ts_p import TestMellinTSp
 
 
 # Créer une suite de tests
