@@ -13,6 +13,7 @@ from src.gamma_func_cpp.lower_gamma.gamma_incomp import (
 
 # pylint: enable=all
 
+# TODO: do with T\neq 1
 
 warnings.filterwarnings("ignore")
 

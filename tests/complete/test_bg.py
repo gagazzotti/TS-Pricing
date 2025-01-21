@@ -11,6 +11,8 @@ from fypy.termstructures.EquityForward import EquityForward
 
 from src.mellin_ts.pricing.BGPricer import BGPricer
 
+# TODO: do with T\neq 1
+
 
 class TestMellinBG(unittest.TestCase):
     """TBD"""
