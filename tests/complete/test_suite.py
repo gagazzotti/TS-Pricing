@@ -2,6 +2,8 @@
 
 import unittest
 
+from tests.complete.test_bg import TestMellinBG
+
 # Importer les modules de tests dans le même dossier
 from tests.complete.test_ts import TestMellinTS
 
@@ -10,7 +12,7 @@ from tests.complete.test_ts import TestMellinTS
 def test_suite():
     """TBD"""
     suite = unittest.TestSuite()
-    for test in [TestMellinTS]:
+    for test in [TestMellinTS, TestMellinBG]:
         suite.addTest(unittest.TestLoader().loadTestsFromTestCase(test))
 
     return suite

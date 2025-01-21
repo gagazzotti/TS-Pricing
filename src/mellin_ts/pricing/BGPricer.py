@@ -336,7 +336,6 @@ class BGPricer:
         ).sum()
 
         serie1 = serie1_1 + serie1_2
-        print("serie EUR")
         return serie1 - serie2 - serie3
 
     def price_eur(
