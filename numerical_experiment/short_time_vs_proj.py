@@ -11,8 +11,8 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.gamma_func_cpp.OneSidedTSPricer import OneSidedTemperedStablePricer
-from src.mellin_ts.gamma_func_cpp.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 

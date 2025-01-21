@@ -14,7 +14,7 @@ np.set_printoptions(precision=16)
 
 # pylint: disable=all
 
-from src.mellin_ts.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
+from src.mellin_ts.pricing.lower_gamma_vect.gamma_incomp import (
     gamma_lower_incomplete_non_normalized,
 )
 

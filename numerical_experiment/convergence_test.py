@@ -9,8 +9,8 @@ import scienceplots
 import tqdm
 from matplotlib.ticker import FuncFormatter
 
-from src.mellin_ts.gamma_func_cpp.OneSidedTSPricer import OneSidedTemperedStablePricer
-from src.mellin_ts.gamma_func_cpp.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
