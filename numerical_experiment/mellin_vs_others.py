@@ -7,7 +7,10 @@ import pandas as pd
 
 # import numpy.typing as npt
 # import matplotlib.pyplot as plt
+# pylint: disable=W0611
 import scienceplots
+
+# pylint: enable=W0611
 import tqdm
 from fypy.model.levy.TemperedStable import TemperedStable
 from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer

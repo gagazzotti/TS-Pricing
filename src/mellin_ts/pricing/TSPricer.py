@@ -13,7 +13,6 @@ from scipy.special import gamma, poch
 np.set_printoptions(precision=16)
 
 # pylint: disable=all
-
 from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
     gamma_lower_incomplete_non_normalized,
 )
