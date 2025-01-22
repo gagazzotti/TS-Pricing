@@ -6,6 +6,13 @@ import numpy as np
 import numpy.typing as npt
 from scipy.special import factorial, gamma
 
+# TODO: changer gamma upper par gamma - gamma lower
+# pylint: enable=all
+# pylint: disable=all
+from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
+    gamma_lower_incomplete_non_normalized,
+)
+
 # pylint: disable=all
 from src.gamma_func_cpp.upper_gamma.gamma_module import (
     gamma_upper_incomplete as gamma_ui,
@@ -14,9 +21,11 @@ from src.gamma_func_cpp.upper_gamma_vect.gamma_module import (
     gamma_upper_incomplete as gamma_ui_vect,
 )
 
-# TODO: changer gamma upper par gamma - gamma lower
-
 # pylint: enable=all
+
+
+def gamma_upper(a, z):
+    return gamma(a) - gamma_lower_incomplete_non_normalized(a, z)
 
 
 warnings.filterwarnings("ignore")
@@ -101,60 +110,15 @@ class OneSidedTemperedStablePricer:
         coef_vect = (-self.ap * ttm) ** n_vec / (
             factorial(n_vec) * gamma(-n_vec * self.beta)
         )
-        gamma_incomplete_vect = np.array(
-            gamma_ui(-self.beta * n_vec, N * [-k * self.lambd])
-        )
-        gamma_incomplete_1_vect = np.array(
-            gamma_ui(-self.beta * n_vec, N * [-k * (self.lambd - 1)])
-        )
-        diff_vect = (
-            np.exp(k)
-            * (self.lambd - 1) ** (n_vec * self.beta)
-            * gamma_incomplete_1_vect
-            - self.lambd ** (self.beta * n_vec) * gamma_incomplete_vect
-        )
-        call_price = (coef_vect * diff_vect).sum()
-        return call_price
-
-    def price_vect(
-        self,
-        S0: float,
-        K: float,
-        r: float,
-        q: float,
-        ttm: float,
-        N: int = 25,
-    ):
-        if isinstance(ttm, float):
-            ttm_vec = np.array([ttm])[None, :, None]
-        else:
-            ttm_vec = np.array(ttm)[None, :, None]
-        if isinstance(K, float):
-            K_vec = np.array([K])[None, None, :]
-        else:
-            K_vec = np.array(K)[None, None, :]
-        k = np.log(S0 / K_vec) + (r - q + self.zeta) * ttm_vec
-        serie = self.serie_vect(k, ttm_vec, N)
-        call_price = K * np.exp((self.gamma - r) * ttm_vec) * serie
-        return call_price
-
-    def serie_vect(
-        self,
-        k: float | npt.NDArray[np.float64],
-        ttm: float | npt.NDArray[np.float64],
-        N: int,
-    ):
-        n_vec = np.arange(0, N)[:, None, None]
-
-        coef_vect = (-self.ap * ttm) ** n_vec / (
-            factorial(n_vec) * gamma(-n_vec * self.beta)
-        )
-
-        gamma_incomplete_vect = np.array(
-            gamma_ui_vect(-self.beta * n_vec, -k[0] * self.lambd)
-        )
-        gamma_incomplete_1_vect = np.array(
-            gamma_ui_vect(-self.beta * n_vec, -k[0] * (self.lambd - 1))
+        # gamma_incomplete_vect = np.array(
+        #     gamma_ui(-self.beta * n_vec, N * [-k * self.lambd])
+        # )
+        # gamma_incomplete_1_vect = np.array(
+        #     gamma_ui(-self.beta * n_vec, N * [-k * (self.lambd - 1)])
+        # )
+        gamma_incomplete_vect = gamma_upper(-self.beta * n_vec, N * [-k * self.lambd])
+        gamma_incomplete_1_vect = gamma_upper(
+            -self.beta * n_vec, N * [-k * (self.lambd - 1)]
         )
         diff_vect = (
             np.exp(k)
@@ -162,5 +126,6 @@ class OneSidedTemperedStablePricer:
             * gamma_incomplete_1_vect
             - self.lambd ** (self.beta * n_vec) * gamma_incomplete_vect
         )
-        call_price = (coef_vect * diff_vect).sum(axis=(0))
-        return call_price
+        call_price = coef_vect * diff_vect
+        call_price[0] = 0
+        return call_price.sum()

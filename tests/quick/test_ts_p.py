@@ -21,14 +21,12 @@ class TestMellinTSp(unittest.TestCase):
         option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
         ts_p_pricer = OneSidedTemperedStablePricer(**ts_p_params)
         price = ts_p_pricer.price(**option_params)
-        option_params = dict(S0=1, K=[1.5, 1.6], r=0.02, q=0.05, ttm=[1.2, 1.3])
-
-        price_vect = ts_p_pricer.price_vect(**option_params)
-
+        option_params = dict(S0=1, K=1.5, r=0.02, q=0.05, ttm=1.2)
+        price_vect = ts_p_pricer.price(**option_params)
         price_ref = 0.18769860488552348  # PROJ
         self.assertAlmostEqual(price, price_ref)
-        self.assertAlmostEqual(price_vect[0, 0, 0], price_ref)
-        diff = np.abs(price_vect[0, 0, 0] - price_ref)
+        self.assertAlmostEqual(price_vect, price_ref)
+        diff = np.abs(price_vect - price_ref)
         print(f"\n Mellin One sided => Ok! (diff:{diff})")
 
 
