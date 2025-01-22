@@ -17,11 +17,11 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.pricers.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.onesidedts_pricer import OneSidedTemperedStablePricer
 
 # from matplotlib.ticker import FuncFormatter
 # import time
-from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.ts_pricer import TemperedStablePricer
 
 # plt.style.use(["science"])
 pd.set_option("display.precision", 8)

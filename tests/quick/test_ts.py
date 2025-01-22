@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.ts_pricer import TemperedStablePricer
 
 
 class TestMellinTS(unittest.TestCase):

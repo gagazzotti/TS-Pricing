@@ -10,8 +10,8 @@ import numpy as np
 import scienceplots
 import tqdm
 
-from src.mellin_ts.pricers.OneSidedTSPricer import OneSidedTemperedStablePricer
-from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.onesidedts_pricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.ts_pricer import TemperedStablePricer
 
 plt.style.use(["science"])
 

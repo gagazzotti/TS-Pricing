@@ -5,7 +5,7 @@ import numpy as np
 import numpy.typing as npt
 import scienceplots
 
-from src.mellin_ts.densities.TSDensity import TSDensity
+from src.mellin_ts.densities.tsdensity import TSDensity
 
 plt.style.use("science")
 
@@ -31,9 +31,11 @@ def plot_mellin(
         above_threshold = (dens > threshold) | (dens < 0)
 
         # Identify the last valid point before exceeding the threshold
-        start_transitions = np.where((~above_threshold[:-1]) & above_threshold[1:])[0]
+        start_transitions = np.where(
+            (~above_threshold[:-1]) & above_threshold[1:])[0]
         # Identify the first valid point after coming back below the threshold
-        end_transitions = np.where((above_threshold[:-1]) & ~above_threshold[1:])[0]
+        end_transitions = np.where(
+            (above_threshold[:-1]) & ~above_threshold[1:])[0]
 
         # Mask y values that exceed the threshold
         y_masked = np.copy(dens)

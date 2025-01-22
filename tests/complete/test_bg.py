@@ -9,7 +9,7 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.pricers.BGPricer import BGPricer
+from src.mellin_ts.pricers.bg_pricer import BGPricer
 
 # TODO: do with T\neq 1
 
