@@ -15,7 +15,8 @@ class TestMellinTSp(unittest.TestCase):
         """TBD"""
         warnings.simplefilter("ignore", category=DeprecationWarning)
 
-        ts_p_params = dict(alpha_p=0.44, beta_p=0.1 + np.exp(1) / 10, lambda_p=1.4)
+        ts_p_params = dict(alpha_p=0.44, beta_p=0.1 +
+                           np.exp(1) / 10, lambda_p=1.4)
         strike = 1.5
         ttm = 1.2
         option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)

@@ -6,7 +6,7 @@ import numpy as np
 import numpy.typing as npt
 import scipy.special as sc
 
-from src.gamma_func_cpp.lower_gamma_args.gamma_lower import (
+from src.gamma_func_cpp.gamma_lower import (
     gamma_lower as gamma_lower_cpp,
 )
 
@@ -186,10 +186,10 @@ class TemperedStablePricer:
     def price(
         self,
         S0: float,
-        K: float | npt.NDArray[np.float64],
+        K: float,
         r: float,
         q: float,
-        ttm: float | npt.NDArray[np.float64],
+        ttm: float,
         N: int = 5,
     ):
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm

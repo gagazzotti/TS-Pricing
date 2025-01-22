@@ -3,7 +3,7 @@
 import numpy.typing as npt
 
 # pylint: disable=all
-from src.gamma_func_cpp.lower_gamma_args.gamma_incomp import (
+from src.gamma_func_cpp.gamma_incomp import (
     gamma_lower_incomplete_non_normalized,
 )
 

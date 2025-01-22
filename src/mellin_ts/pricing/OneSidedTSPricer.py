@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import scipy.special as sc
 
-from src.gamma_func_cpp.lower_gamma_args.gamma_lower import (
+from src.gamma_func_cpp.gamma_lower import (
     gamma_lower as gamma_lower_cpp,
 )
 
