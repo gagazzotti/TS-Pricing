@@ -17,11 +17,11 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.OneSidedTSPricer import OneSidedTemperedStablePricer
 
 # from matplotlib.ticker import FuncFormatter
 # import time
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
 
 # plt.style.use(["science"])
 pd.set_option("display.precision", 8)
@@ -52,7 +52,8 @@ def main():
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
 
     mellin_time_ts = get_time_mellin_ts(option_params, ts_params, eps_ts)
-    proj_time_ts = get_time_PROJ_ts(option_params, ts_params, eps_ts, one_sided=False)
+    proj_time_ts = get_time_PROJ_ts(
+        option_params, ts_params, eps_ts, one_sided=False)
     df_ts = pd.concat([mellin_time_ts, proj_time_ts], axis=1)
     proj_time_ts_p = get_time_PROJ_ts(
         option_params, ts_p_params, eps_ts_p, one_sided=True
@@ -100,9 +101,11 @@ def get_time_PROJ_ts(option_params: dict, ts_params: dict, eps: list, one_sided=
         proj_price_ref = 0.22968572289948497
         alpha_list = [np.nan, 25, 30, 35, 40, 50]
 
-    comp_time = {error: {str(alpha): 0 for alpha in alpha_list} for error in eps}
+    comp_time = {error: {str(alpha): 0 for alpha in alpha_list}
+                 for error in eps}
     fwd, disc_curve = get_proj_curves(option_params)
-    model = TemperedStable(forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
+    model = TemperedStable(
+        forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
     logN_max = 20
     for error in tqdm.tqdm(eps):
         for alpha in alpha_list:

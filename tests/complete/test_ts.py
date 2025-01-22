@@ -9,7 +9,7 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
 
 
 class TestMellinTS(unittest.TestCase):
@@ -38,7 +38,8 @@ class TestMellinTS(unittest.TestCase):
                 price = ts_p_pricer.price(**option_params, N=80)
                 disc_curve = DiscountCurve_ConstRate(rate=option_params["r"])
                 div_disc = DiscountCurve_ConstRate(rate=option_params["q"])
-                fwd = EquityForward(S0=1, discount=disc_curve, divDiscount=div_disc)
+                fwd = EquityForward(
+                    S0=1, discount=disc_curve, divDiscount=div_disc)
                 bg_model = TemperedStable(fwd, disc_curve, **ts_params)
                 proj_pricer = ProjEuropeanPricer(
                     model=bg_model, N=2**17, order=3, alpha_override=100

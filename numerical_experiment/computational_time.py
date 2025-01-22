@@ -10,8 +10,8 @@ import numpy as np
 import scienceplots
 import tqdm
 
-from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -110,7 +110,8 @@ def plot_time(times: dict):
     plt.yscale("log")
     plt.grid()
     plt.legend()
-    plt.savefig("numerical_experiment/output/computational_time_one_sided.png", dpi=600)
+    plt.savefig(
+        "numerical_experiment/output/computational_time_one_sided.png", dpi=600)
     plt.close()
 
 

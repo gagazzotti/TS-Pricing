@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
 
 
 class TestMellinTS(unittest.TestCase):
@@ -32,7 +32,8 @@ class TestMellinTS(unittest.TestCase):
         # price_ref = 0.2296857228994772  # alpha 100
         # price_ref = 0.22968572289946598  # alpha 200
         self.assertAlmostEqual(price, price_ref)
-        print(f"\n Mellin Double sided => Ok! (diff:{np.abs(price - price_ref)})")
+        print(
+            f"\n Mellin Double sided => Ok! (diff:{np.abs(price - price_ref)})")
 
 
 if __name__ == "__main__":

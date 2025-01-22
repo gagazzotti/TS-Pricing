@@ -11,8 +11,8 @@ from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
-from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -101,14 +101,16 @@ def get_lewis_prices(option_params: dict, ts_params: dict):
     fwd = EquityForward(
         S0=option_params["S0"], discount=disc_curve, divDiscount=div_disc
     )
-    model = TemperedStable(forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
+    model = TemperedStable(
+        forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
     lewis_pricer = LewisEuropeanPricer(model=model)
     # lewis_pricer = ProjEuropeanPricer(model=model, N=2**16, order=3)
     # lewis_pricer = HilbertEuropeanPricer(model=model, N=2**17, Nh=2**8)
 
     lewis_prices = []
     for maturity in option_params["ttm"]:
-        price = lewis_pricer.price(T=maturity, K=option_params["K"], is_call=True)
+        price = lewis_pricer.price(
+            T=maturity, K=option_params["K"], is_call=True)
         lewis_prices.append(price)
     return np.array(lewis_prices)
 
@@ -128,13 +130,16 @@ def get_ref_prices(option_params: dict, ts_params: dict):
     fwd = EquityForward(
         S0=option_params["S0"], discount=disc_curve, divDiscount=div_disc
     )
-    model = TemperedStable(forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
-    proj_pricer = ProjEuropeanPricer(model=model, N=2**20, order=3, alpha_override=500)
+    model = TemperedStable(
+        forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
+    proj_pricer = ProjEuropeanPricer(
+        model=model, N=2**20, order=3, alpha_override=500)
     # proj_pricer = HilbertEuropeanPricer(model=model, N=2**15, Nh=2**7)
     # proj_pricer = LewisEuropeanPricer(model=model)
     proj_prices = []
     for maturity in option_params["ttm"]:
-        price = proj_pricer.price(T=maturity, K=option_params["K"], is_call=True)
+        price = proj_pricer.price(
+            T=maturity, K=option_params["K"], is_call=True)
         proj_prices.append(price)
     return np.array(proj_prices)
 

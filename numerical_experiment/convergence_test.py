@@ -9,8 +9,8 @@ import scienceplots
 import tqdm
 from matplotlib.ticker import FuncFormatter
 
-from src.mellin_ts.pricing.OneSidedTSPricer import OneSidedTemperedStablePricer
-from src.mellin_ts.pricing.TSPricer import TemperedStablePricer
+from src.mellin_ts.pricers.OneSidedTSPricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.TSPricer import TemperedStablePricer
 
 plt.style.use(["science"])
 
@@ -105,7 +105,8 @@ def decreasing_error(
     ax2.legend(loc="upper right")
 
     # Save the figure
-    plt.savefig("numerical_experiment/output/decreasing_error_with_time.png", dpi=200)
+    plt.savefig(
+        "numerical_experiment/output/decreasing_error_with_time.png", dpi=200)
     plt.close()
 
 
