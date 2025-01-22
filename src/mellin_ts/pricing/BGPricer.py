@@ -4,22 +4,15 @@ import warnings
 
 import numpy as np
 import numpy.typing as npt
-from scipy.special import factorial, gamma, hyp2f1
+import scipy.special as sc
 
-# pylint: disable=all
-from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
-    gamma_lower_incomplete_non_normalized,
+from src.gamma_func_cpp.lower_gamma_args.gamma_lower import (
+    gamma_lower as gamma_lower_cpp,
 )
-
-# pylint: enable=all
 
 # TODO: do with T\neq 1
 
 warnings.filterwarnings("ignore")
-
-
-def gamma_lower_cpp(a, z):
-    return gamma_lower_incomplete_non_normalized(a, z)
 
 
 class BGPricer:
@@ -58,7 +51,7 @@ class BGPricer:
         Returns:
             float: apm
         """
-        return -alpha * gamma(-beta)
+        return -alpha * sc.gamma(-beta)
 
     def zeta_(self):
         """convexity adjustment
@@ -73,20 +66,21 @@ class BGPricer:
 
     def get_mbg(self):
         # Constante densité de BG
-        numerator = (self.lambda_p**self.alpha_p) * (self.lambda_m**self.alpha_m)
+        numerator = (self.lambda_p**self.alpha_p) * \
+            (self.lambda_m**self.alpha_m)
         denominator = (
             self.lambda_ubar ** (self.alpha_ubar)
-            * gamma(self.alpha_p)
-            * gamma(self.alpha_m)
-            * gamma(1 - self.alpha_p)
+            * sc.gamma(self.alpha_p)
+            * sc.gamma(self.alpha_m)
+            * sc.gamma(1 - self.alpha_p)
         )
         Mbg = numerator / denominator
         return Mbg
 
     def get_const(self):
-        pre = gamma(self.alpha_p + self.alpha_m) / (
-            gamma(self.alpha_p)
-            * gamma(self.alpha_m + 1)
+        pre = sc.gamma(self.alpha_p + self.alpha_m) / (
+            sc.gamma(self.alpha_p)
+            * sc.gamma(self.alpha_m + 1)
             * self.lambda_p ** (self.alpha_p + self.alpha_m)
         )
         return pre
@@ -140,29 +134,32 @@ class BGPricer:
         N: int,
     ):
         n_vec = np.arange(0, N)
-        fact_n = factorial(n_vec)
+        fact_n = sc.factorial(n_vec)
         taylor_term = (-1) ** n_vec / fact_n
         # doublon
-        am_plus_m = gamma(self.alpha_m + n_vec)
-        one_minus_alphap_plus_n = gamma(1 - self.alpha_p + n_vec)
+        am_plus_m = sc.gamma(self.alpha_m + n_vec)
+        one_minus_alphap_plus_n = sc.gamma(1 - self.alpha_p + n_vec)
 
         serie1_1 = 1
 
-        num = (self.lambda_p**self.alpha_p * self.lambda_m**self.alpha_m) * gamma(
+        num = (self.lambda_p**self.alpha_p * self.lambda_m**self.alpha_m) * sc.gamma(
             2 * self.alpha_ubar
         )
         denum = -(
             self.lambda_ubar ** (2 * self.alpha_ubar)
-            * gamma(self.alpha_p)
-            * gamma(self.alpha_m)
+            * sc.gamma(self.alpha_p)
+            * sc.gamma(self.alpha_m)
             * (self.alpha_p)
         )
-        serie1_2 = (num / denum) * hyp2f1(
+        # must disable since all unfunc are not found by pylint
+        # pylint: disable=E1101
+        serie1_2 = (num / denum) * sc.hyp2f1(
             2 * self.alpha_ubar,
             1,
             1 + self.alpha_p,
             self.lambda_p / self.lambda_ubar,
         )
+        # pylint: enable=E1101
 
         gamma_inc_vec = np.array(
             gamma_lower_cpp(
@@ -173,7 +170,7 @@ class BGPricer:
 
         serie2 = (
             taylor_term
-            * gamma(1 - n_vec - 2 * self.alpha_ubar)
+            * sc.gamma(1 - n_vec - 2 * self.alpha_ubar)
             * am_plus_m
             * self.lambda_ubar ** (self.alpha_ubar + n_vec)
             * self.lambda_p ** (-n_vec - 2 * self.alpha_ubar)
@@ -185,7 +182,7 @@ class BGPricer:
         )
         serie3 = (
             taylor_term
-            * gamma(2 * self.alpha_ubar - 1 - n_vec)
+            * sc.gamma(2 * self.alpha_ubar - 1 - n_vec)
             * one_minus_alphap_plus_n
             * self.lambda_ubar ** (1 + n_vec - self.alpha_ubar)
             * self.lambda_p ** (-1 - n_vec)
@@ -201,29 +198,31 @@ class BGPricer:
         N: int,
     ):
         n_vec = np.arange(0, N)
-        fact_n = factorial(n_vec)
+        fact_n = sc.factorial(n_vec)
         taylor_term = (-1) ** n_vec / fact_n
         # doublon
-        am_plus_m = gamma(self.alpha_m + n_vec)
-        one_minus_alphap_plus_n = gamma(1 - self.alpha_p + n_vec)
+        am_plus_m = sc.gamma(self.alpha_m + n_vec)
+        one_minus_alphap_plus_n = sc.gamma(1 - self.alpha_p + n_vec)
 
         serie1_1 = np.exp(-self.zeta)
 
-        num = (self.lambda_p**self.alpha_p * self.lambda_m**self.alpha_m) * gamma(
+        num = (self.lambda_p**self.alpha_p * self.lambda_m**self.alpha_m) * sc.gamma(
             2 * self.alpha_ubar
         )
         denum = -(
             self.lambda_ubar ** (2 * self.alpha_ubar)
-            * gamma(self.alpha_p)
-            * gamma(self.alpha_m)
+            * sc.gamma(self.alpha_p)
+            * sc.gamma(self.alpha_m)
             * (self.alpha_p)
         )
-        serie1_2 = (num / denum) * hyp2f1(
+        # pylint: disable=E1101
+        serie1_2 = (num / denum) * sc.hyp2f1(
             2 * self.alpha_ubar,
             1,
             1 + self.alpha_p,
             (self.lambda_p - 1) / self.lambda_ubar,
         )
+        # pylint: enable=E1101
 
         gamma_inc_vec = np.array(
             gamma_lower_cpp(
@@ -234,7 +233,7 @@ class BGPricer:
 
         serie2 = (
             taylor_term
-            * gamma(1 - n_vec - 2 * self.alpha_ubar)
+            * sc.gamma(1 - n_vec - 2 * self.alpha_ubar)
             * am_plus_m
             * self.lambda_ubar ** (self.alpha_ubar + n_vec)
             * (self.lambda_p - 1) ** (-n_vec - 2 * self.alpha_ubar)
@@ -246,7 +245,7 @@ class BGPricer:
         )
         serie3 = (
             taylor_term
-            * gamma(2 * self.alpha_ubar - 1 - n_vec)
+            * sc.gamma(2 * self.alpha_ubar - 1 - n_vec)
             * one_minus_alphap_plus_n
             * self.lambda_ubar ** (1 + n_vec - self.alpha_ubar)
             * (self.lambda_p - 1) ** (-1 - n_vec)
@@ -266,18 +265,18 @@ class BGPricer:
         # ici, je fais l'erreur
 
         n_vec = np.arange(0, N)
-        fact_n = factorial(n_vec)
+        fact_n = sc.factorial(n_vec)
         taylor_term = (-1) ** n_vec / fact_n
         # doublons
-        am_plus_m = gamma(self.alpha_m + n_vec)
-        two_alpha_bar_plus_n = gamma(n_vec + 2 * self.alpha_ubar)
-        one_minus_alphap_plus_n = gamma(1 - self.alpha_p + n_vec)
+        am_plus_m = sc.gamma(self.alpha_m + n_vec)
+        two_alpha_bar_plus_n = sc.gamma(n_vec + 2 * self.alpha_ubar)
+        one_minus_alphap_plus_n = sc.gamma(1 - self.alpha_p + n_vec)
 
         serie1_1 = (
             taylor_term
             * am_plus_m
             * one_minus_alphap_plus_n
-            * gamma(self.alpha_p - n_vec)
+            * sc.gamma(self.alpha_p - n_vec)
             * self.lambda_ubar ** (self.alpha_bar - n_vec)
             * (
                 np.exp(k) * (self.lambda_p - 1) ** (n_vec - self.alpha_p)
@@ -289,7 +288,7 @@ class BGPricer:
             taylor_term
             * two_alpha_bar_plus_n
             * fact_n
-            * gamma(-self.alpha_p - n_vec)
+            * sc.gamma(-self.alpha_p - n_vec)
             * self.lambda_ubar ** (-self.alpha_ubar - n_vec)
             * (np.exp(k) * (self.lambda_p - 1) ** (n_vec) - (self.lambda_p) ** (n_vec))
         ).sum()
@@ -310,14 +309,15 @@ class BGPricer:
 
         serie2 = (
             taylor_term
-            * gamma(1 - n_vec - 2 * self.alpha_ubar)
+            * sc.gamma(1 - n_vec - 2 * self.alpha_ubar)
             * am_plus_m
             * self.lambda_ubar ** (self.alpha_ubar + n_vec)
             * (
                 np.exp(k)
                 * (self.lambda_p - 1) ** (-n_vec - 2 * self.alpha_ubar)
                 * gamma_inc_vec_lamp_m1
-                - self.lambda_p ** (-n_vec - 2 * self.alpha_ubar) * gamma_inc_vec_lamp
+                - self.lambda_p ** (-n_vec - 2 *
+                                    self.alpha_ubar) * gamma_inc_vec_lamp
             )
         ).sum()
 
@@ -329,7 +329,7 @@ class BGPricer:
         )
         serie3 = (
             taylor_term
-            * gamma(2 * self.alpha_ubar - 1 - n_vec)
+            * sc.gamma(2 * self.alpha_ubar - 1 - n_vec)
             * one_minus_alphap_plus_n
             * self.lambda_ubar ** (1 + n_vec - self.alpha_ubar)
             * (
@@ -355,9 +355,11 @@ class BGPricer:
     ):
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
         if k > 0:
-            raise NotImplementedError("Negative moneyness not implemented so far.")
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
         elif k == 0:
-            raise NotImplementedError("Negative moneyness not implemented so far.")
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
         else:
             serie = self.serie_EUR_1(k, ttm, N)
             call_price = self.mbg * K * np.exp(-r * ttm) * serie

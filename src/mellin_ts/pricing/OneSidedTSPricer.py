@@ -3,19 +3,16 @@
 import warnings
 
 import numpy as np
-import numpy.typing as npt
-from scipy.special import factorial, gamma
+import scipy.special as sc
 
-# pylint: enable=all
-from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
-    gamma_lower_incomplete_non_normalized,
+from src.gamma_func_cpp.lower_gamma_args.gamma_lower import (
+    gamma_lower as gamma_lower_cpp,
 )
-
-# pylint: disable=all
 
 
 def gamma_upper(a, z):
-    return gamma(a) - gamma_lower_incomplete_non_normalized(a, z)
+    """TBD"""
+    return sc.gamma(a) - gamma_lower_cpp(a, z)
 
 
 warnings.filterwarnings("ignore")
@@ -51,7 +48,7 @@ class OneSidedTemperedStablePricer:
         Returns:
             float: apm
         """
-        return -alpha * gamma(-beta)
+        return -alpha * sc.gamma(-beta)
 
     def zeta_(self):
         """convexity adjustment
@@ -61,7 +58,7 @@ class OneSidedTemperedStablePricer:
         """
         zeta_p = (
             self.alpha
-            * gamma(-self.beta)
+            * sc.gamma(-self.beta)
             * ((self.lambd - 1) ** self.beta - self.lambd**self.beta)
         )
         return -zeta_p
@@ -81,26 +78,58 @@ class OneSidedTemperedStablePricer:
         r: float,
         q: float,
         ttm: float,
-        N: int = 25,
-        # time_verbose=True,
-    ):
+        N: int = 25
+    ) -> float:
+        """
+        Main function to price a call.
+
+        Args:
+            S0 (float): S0
+            K (float): strike
+            r (float): free-risk rate
+            q (float): dividend rate
+            ttm (float): timt to maturity
+            N (int, optional): order of summation. Defaults to 25.
+
+        Returns:
+            float: call price
+        """
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
-        serie = self.serie(k, ttm, N)
-        call_price = K * np.exp((self.gamma - r) * ttm) * serie
-        return call_price
+        if k > 0:
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
+        elif k == 0:
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
+        else:
+            serie = self.serie(k, ttm, N)
+            call_price = K * np.exp((self.gamma - r) * ttm) * serie
+            return call_price
 
     def serie(
         self,
-        k: float | npt.NDArray[np.float64],
-        ttm: float | npt.NDArray[np.float64],
-        N: int,
-    ):
+        k: float,
+        ttm: float,
+        N: int
+    ) -> float:
+        """
+        Compute the serie exposed in the article.
+
+        Args:
+            k (float): moneyness
+            ttm (float): _description_
+            N (int): _description_
+
+        Returns:
+            float: _description_
+        """
         n_vec = np.arange(0, N)
 
         coef_vect = (-self.ap * ttm) ** n_vec / (
-            factorial(n_vec) * gamma(-n_vec * self.beta)
+            sc.factorial(n_vec) * sc.gamma(-n_vec * self.beta)
         )
-        gamma_incomplete_vect = gamma_upper(-self.beta * n_vec, N * [-k * self.lambd])
+        gamma_incomplete_vect = gamma_upper(-self.beta *
+                                            n_vec, N * [-k * self.lambd])
         gamma_incomplete_1_vect = gamma_upper(
             -self.beta * n_vec, N * [-k * (self.lambd - 1)]
         )

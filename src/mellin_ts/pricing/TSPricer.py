@@ -1,32 +1,21 @@
 """TBD"""
 
 import warnings
-from time import time
 
 import numpy as np
 import numpy.typing as npt
-import scipy
-import scipy.special
 import scipy.special as sc
-from scipy.special import gamma, poch
 
-np.set_printoptions(precision=16)
-
-# pylint: disable=all
-from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
-    gamma_lower_incomplete_non_normalized,
+from src.gamma_func_cpp.lower_gamma_args.gamma_lower import (
+    gamma_lower as gamma_lower_cpp,
 )
 
-# pylint: enable=all
+np.set_printoptions(precision=16)
 
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # TODO: faire un fichier de test gamma lower, faire un fichier d'import python de
-
-
-def gamma_lower_cpp(a, z):
-    return gamma_lower_incomplete_non_normalized(a, z)
 
 
 class TemperedStablePricer:
@@ -91,15 +80,16 @@ class TemperedStablePricer:
         taylor = (-1) ** (n1 + n2 + n3) / (
             sc.factorial(n1) * sc.factorial(n2) * sc.factorial(n3)
         )
-        pochhamer_symb = poch(1 + self.beta_p * n2, n1)
+        sc.pochhamer_symb = sc.poch(1 + self.beta_p * n2, n1)
         gamma_term = sc.gamma(-1 - n1 - self.beta_p * n2 - self.beta_m * n3) / (
             sc.gamma(-self.beta_p * n2) * sc.gamma(-self.beta_m * n3)
         )
         gamma_term[:, 0, 0] = 0
         # time term
         at_term = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
-        a2 = taylor * pochhamer_symb * gamma_term * at_term
-        ulambda_term = self.ulambda ** (1 + n1 + self.beta_p * n2 + self.beta_m * n3)
+        a2 = taylor * sc.pochhamer_symb * gamma_term * at_term
+        ulambda_term = self.ulambda ** (1 + n1 +
+                                        self.beta_p * n2 + self.beta_m * n3)
         k_vec = np.ones_like(n1).astype(float) * k.item()
         function_term = (
             np.exp(k_vec)
@@ -116,7 +106,9 @@ class TemperedStablePricer:
         taylor = (-1) ** (n1 + n2 + n3) / (
             sc.factorial(n1) * sc.factorial(n2) * sc.factorial(n3)
         )
-        pochhamer_symb = poch(-self.beta_m * n3, n1) / sc.gamma(1 + self.beta_p * n2)
+        sc.pochhamer_symb = sc.poch(-self.beta_m * n3, n1) / sc.gamma(
+            1 + self.beta_p * n2
+        )
         at_term = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
         ulambda_term = self.ulambda ** (n1)
         # A1 pas encore vectorisé, on pourra réduire les dimensions une fois A1 fait
@@ -152,12 +144,13 @@ class TemperedStablePricer:
 
         # multiplication par e^{k}-1
         low_gamma_term[0, 0, 0] = (
-            self.beta_p / (self.beta_m + self.beta_p) * (np.exp(k) - 1).astype(float)
+            self.beta_p / (self.beta_m + self.beta_p) *
+            (np.exp(k) - 1).astype(float)
         )
 
         # gamma_term in >1,0,0
         low_gamma_term[1:, 0, 0] = 0
-        a1 = taylor * pochhamer_symb * at_term
+        a1 = taylor * sc.pochhamer_symb * at_term
         full_a1 = -a1 * ulambda_term * low_gamma_term
         return full_a1
 
@@ -174,13 +167,15 @@ class TemperedStablePricer:
     def serie2(
         self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
     ):
-        taylor_term = -((-1) ** (n2 + n3)) / (sc.factorial(n2) * sc.factorial(n3))
+        taylor_term = -((-1) ** (n2 + n3)) / \
+            (sc.factorial(n2) * sc.factorial(n3))
         gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
         gamma_term = sc.gamma(-self.beta_p * n2 - self.beta_m * n3 + n1) / (
             sc.gamma(1 - self.beta_p * n2 + n1) * sc.gamma(-self.beta_m * n3)
         )
         gamma_term[0, 0, 0] = self.beta_m / (self.beta_m + self.beta_p)
-        ulambda_term = self.ulambda ** (self.beta_p * n2 + self.beta_m * n3 - n1)
+        ulambda_term = self.ulambda ** (self.beta_p *
+                                        n2 + self.beta_m * n3 - n1)
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
         at = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
         serie = (taylor_term * gamma_term * exp_term * at * ulambda_term).sum(
@@ -199,9 +194,11 @@ class TemperedStablePricer:
     ):
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
         if k > 0:
-            raise NotImplementedError("Negative moneyness not implemented so far.")
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
         elif k == 0:
-            raise NotImplementedError("Negative moneyness not implemented so far.")
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
         else:
             n1 = np.arange(N)[:, None, None]
             n2 = np.arange(N)[None, :, None]
@@ -211,5 +208,6 @@ class TemperedStablePricer:
             constant_term = np.exp(k - self.zeta * ttm) - 1
             factor_serie = np.exp(self.gamma * ttm)
             factor = K * np.exp(-r * ttm)
-            call_price = factor * (constant_term + factor_serie * (serie1 + serie2))
+            call_price = factor * \
+                (constant_term + factor_serie * (serie1 + serie2))
             return float(call_price)
