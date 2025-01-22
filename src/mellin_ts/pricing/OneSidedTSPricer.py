@@ -6,22 +6,12 @@ import numpy as np
 import numpy.typing as npt
 from scipy.special import factorial, gamma
 
-# TODO: changer gamma upper par gamma - gamma lower
 # pylint: enable=all
-# pylint: disable=all
 from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
     gamma_lower_incomplete_non_normalized,
 )
 
 # pylint: disable=all
-from src.gamma_func_cpp.upper_gamma.gamma_module import (
-    gamma_upper_incomplete as gamma_ui,
-)
-from src.gamma_func_cpp.upper_gamma_vect.gamma_module import (
-    gamma_upper_incomplete as gamma_ui_vect,
-)
-
-# pylint: enable=all
 
 
 def gamma_upper(a, z):
@@ -110,12 +100,6 @@ class OneSidedTemperedStablePricer:
         coef_vect = (-self.ap * ttm) ** n_vec / (
             factorial(n_vec) * gamma(-n_vec * self.beta)
         )
-        # gamma_incomplete_vect = np.array(
-        #     gamma_ui(-self.beta * n_vec, N * [-k * self.lambd])
-        # )
-        # gamma_incomplete_1_vect = np.array(
-        #     gamma_ui(-self.beta * n_vec, N * [-k * (self.lambd - 1)])
-        # )
         gamma_incomplete_vect = gamma_upper(-self.beta * n_vec, N * [-k * self.lambd])
         gamma_incomplete_1_vect = gamma_upper(
             -self.beta * n_vec, N * [-k * (self.lambd - 1)]
