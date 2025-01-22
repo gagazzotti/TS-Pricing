@@ -12,7 +12,7 @@ from tests.complete.test_ts import TestMellinTS
 def test_suite():
     """TBD"""
     suite = unittest.TestSuite()
-    for test in [TestMellinTS, TestMellinBG]:
+    for test in [TestMellinBG, TestMellinTS]:
         suite.addTest(unittest.TestLoader().loadTestsFromTestCase(test))
 
     return suite

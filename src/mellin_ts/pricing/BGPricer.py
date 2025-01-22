@@ -7,8 +7,8 @@ import numpy.typing as npt
 from scipy.special import factorial, gamma, hyp2f1
 
 # pylint: disable=all
-from src.gamma_func_cpp.lower_gamma.gamma_incomp import (
-    gamma_lower_incomplete_non_normalized as gamma_lower,
+from src.gamma_func_cpp.lower_gamma_vect.gamma_incomp import (
+    gamma_lower_incomplete_non_normalized,
 )
 
 # pylint: enable=all
@@ -16,6 +16,10 @@ from src.gamma_func_cpp.lower_gamma.gamma_incomp import (
 # TODO: do with T\neq 1
 
 warnings.filterwarnings("ignore")
+
+
+def gamma_lower_cpp(a, z):
+    return gamma_lower_incomplete_non_normalized(a, z)
 
 
 class BGPricer:
@@ -161,7 +165,7 @@ class BGPricer:
         )
 
         gamma_inc_vec = np.array(
-            gamma_lower(
+            gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
                 -k * self.lambda_p * np.ones_like(n_vec),
             )
@@ -176,7 +180,7 @@ class BGPricer:
             * gamma_inc_vec
         ).sum() * self.mbg
 
-        gamma_inc_vec_2 = gamma_lower(
+        gamma_inc_vec_2 = gamma_lower_cpp(
             1 + n_vec, -k * self.lambda_p * np.ones_like(n_vec)
         )
         serie3 = (
@@ -222,7 +226,7 @@ class BGPricer:
         )
 
         gamma_inc_vec = np.array(
-            gamma_lower(
+            gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
                 -k * (self.lambda_p - 1) * np.ones_like(n_vec),
             )
@@ -237,7 +241,7 @@ class BGPricer:
             * gamma_inc_vec
         ).sum() * self.mbg
 
-        gamma_inc_vec_2 = gamma_lower(
+        gamma_inc_vec_2 = gamma_lower_cpp(
             1 + n_vec, -k * (self.lambda_p - 1) * np.ones_like(n_vec)
         )
         serie3 = (
@@ -291,14 +295,14 @@ class BGPricer:
         ).sum()
 
         gamma_inc_vec_lamp = np.array(
-            gamma_lower(
+            gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
                 -k * self.lambda_p * np.ones_like(n_vec),
             )
         )
 
         gamma_inc_vec_lamp_m1 = np.array(
-            gamma_lower(
+            gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
                 -k * (self.lambda_p - 1) * np.ones_like(n_vec),
             )
@@ -317,10 +321,10 @@ class BGPricer:
             )
         ).sum()
 
-        gamma_inc_vec_2_lamp = gamma_lower(
+        gamma_inc_vec_2_lamp = gamma_lower_cpp(
             1 + n_vec, -k * self.lambda_p * np.ones_like(n_vec)
         )
-        gamma_inc_vec_2_lamp_m1 = gamma_lower(
+        gamma_inc_vec_2_lamp_m1 = gamma_lower_cpp(
             1 + n_vec, -k * (self.lambda_p - 1) * np.ones_like(n_vec)
         )
         serie3 = (
