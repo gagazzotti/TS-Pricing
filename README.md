@@ -19,6 +19,10 @@ source install.bash
 
 ...
 
+## Results
+
+...
+
 ## Tests
 
 ...
