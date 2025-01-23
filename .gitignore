@@ -10,9 +10,10 @@ output/
 ts.py
 BG/
 # C extensions
-# *.so
+*.so
 olds/
 text.txt
+*.egg-info
 
 # Distribution / packaging
 .Python
