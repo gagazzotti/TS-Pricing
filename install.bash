@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Nom de l'environnement Conda
-ENV_NAME="test_mellin"
+ENV_NAME="ts_option_mellin_py311"
 
 # Vérifier si l'environnement Conda existe
 if conda info --envs | grep -q "^$ENV_NAME"; then
@@ -35,6 +35,7 @@ echo "Tests en cours d'exécution..."
 # Lancer les tests avec Python
 if [ -f "tests/quick/test_suite.py" ]; then
     python -m tests.quick.test_suite || { echo "Erreur lors de l'exécution des tests."; return 1; }
+    python -m tests.complete.test_suite || { echo "Erreur lors de l'exécution des tests."; return 1; }
     echo "Tests terminés avec succès."
 else
     echo "Le fichier Tests/test.py est introuvable. Vérifiez votre dossier."
