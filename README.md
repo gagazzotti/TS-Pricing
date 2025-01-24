@@ -57,3 +57,11 @@ source install.bash
 - implement itm, atm
 - BG prices with T
 - 3.corriger le nom alpha_m dans proj pour BG
+
+## Commande
+
+C++
+
+```bash
+c++ -O3 -Wall -shared -std=c++17 -fPIC     -I$CONDA_PREFIX/include     $(python3 -m pybind11 --includes)     gamma_incomp.cpp -o gamma_incomp$(python3-config --extension-suffix)     -L$CONDA_PREFIX/lib -lgsl -lgslcblas
+```
