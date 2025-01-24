@@ -7,12 +7,23 @@ import numpy as np
 import numpy.typing as npt
 import scienceplots
 import tqdm
+from fypy.model.levy.TemperedStable import TemperedStable
+from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
+from fypy.pricing.StrikesPricer import StrikesPricer
+from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
+from fypy.termstructures.EquityForward import EquityForward
 from matplotlib.ticker import FuncFormatter
 
 from src.mellin_ts.pricers.onesidedts_pricer import OneSidedTemperedStablePricer
 from src.mellin_ts.pricers.ts_pricer import TemperedStablePricer
 
 plt.style.use(["science"])
+
+
+def compute_moneyness(option_params: dict, zeta: float):
+    """TBD"""
+    drift = (option_params["r"]-option_params["q"]+zeta)*option_params["ttm"]
+    return np.log(option_params["S0"]/option_params["strikes"]) + drift
 
 
 def main():
@@ -25,25 +36,28 @@ def main():
         beta_m=0.5 - np.pi / 100,
         lambda_m=0.4,
     )
-    ts_p_params = dict(alpha_p=0.44, beta_p=0.1 + np.exp(1) / 10, lambda_p=1.4)
     n_start, n_end = 1, 101
     range_n = np.arange(n_start, n_end, 5) - 1
     range_n[0] = 1
     range_n = list(range_n)
-    strike = 1.5
-    ttm = 1.2
-    option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
+    ttm = 0.2
+    option_params = dict(S0=1, r=0.02, q=0.05, ttm=ttm,
+                         strikes=np.arange(0.5, 2.2, 0.1))
     ts_pricer = TemperedStablePricer(**ts_params)
-    ts_p_pricer = OneSidedTemperedStablePricer(**ts_p_params)
+    zeta = ts_pricer.zeta
+    moneyness = compute_moneyness(option_params, zeta)
+    prices = get_proj_prices(option_params, ts_params)
 
-    prices, times = get_prices(ts_pricer, ts_p_pricer, option_params, range_n)
-
-    decreasing_error(prices, times, range_n)
-    convergence(prices, range_n)
+    plt.plot(option_params["strikes"], prices)
+    plt.plot(option_params["strikes"], (option_params["S0"]-option_params["strikes"])
+             * (option_params["S0"]-option_params["strikes"] >= 0))
+    plt.grid()
+    plt.xlabel(r"$K$")
+    plt.show()
 
 
 def decreasing_error(
-    prices: npt.NDArray[np.float64], times: npt.NDArray[np.float64], range_n: list[int]
+    prices: npt.NDArray[np.float64], range_n: list[int]
 ):
     """Convergence to PROJ price, plotting error
 
@@ -93,20 +107,10 @@ def decreasing_error(
     ax1.legend(loc="upper left")
 
     # Create the second Y-axis (for the time data)
-    ax2 = ax1.twinx()
-    ax2.set_ylabel("Computation Time (s)")
-    ax2.plot(
-        range_n, times["ts"], label="Time TS (Double-sided)", color="green", alpha=0.5
-    )
-    ax2.plot(
-        range_n, times["ts_p"], label="Time TS (One-sided)", color="orange", alpha=0.5
-    )
-    ax2.set_yscale("log")
-    ax2.legend(loc="upper right")
 
     # Save the figure
     plt.savefig(
-        "numerical_experiment/output/decreasing_error_with_time.png", dpi=200)
+        "numerical_experiment/output/test.png", dpi=200)
     plt.close()
 
 
@@ -170,15 +174,13 @@ def convergence(prices: npt.NDArray[np.float64], range_n: list[int]):
         FuncFormatter(lambda x, _: f"{int(x)}")
     )  # For the X-axis
     # plt.xticks(range_n)
-    plt.savefig("numerical_experiment/output/convergence.png", dpi=200)
+    plt.savefig("numerical_experiment/output/convergence_test.png", dpi=200)
     plt.close()
 
 
-def get_prices(
-    ts_pricer: TemperedStablePricer,
-    ts_p_pricer: OneSidedTemperedStablePricer,
+def get_proj_prices(
     option_params: dict,
-    range_n: list[int],
+    ts_params: dict,
 ):
     """_summary_
 
@@ -191,25 +193,18 @@ def get_prices(
     Returns:
         prices
     """
-    prices = {}
-    times = {}
-    price_ts = []
-    time_ts = []
-    for n in tqdm.tqdm(range_n):
-        t0 = time.time()
-        price_ts.append(ts_pricer.price(**option_params, N=n))
-        time_ts.append(time.time() - t0)
-    prices["ts"] = np.array(price_ts)
-    times["ts"] = np.array(time_ts)
-    price_ts_p = []
-    time_ts_p = []
-    for n in tqdm.tqdm(range_n):
-        t0 = time.time()
-        price_ts_p.append(ts_p_pricer.price(**option_params, N=n))
-        time_ts_p.append(time.time() - t0)
-    prices["ts_p"] = np.array(price_ts_p)
-    times["ts_p"] = np.array(time_ts_p)
-    return prices, times
+    # PROJ framewrok
+    disc_curve = DiscountCurve_ConstRate(rate=option_params["r"])
+    div_disc = DiscountCurve_ConstRate(rate=option_params["q"])
+    fwd = EquityForward(
+        S0=option_params["S0"], discount=disc_curve, divDiscount=div_disc)
+    model = TemperedStable(
+        forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
+    proj_pricer = ProjEuropeanPricer(
+        model=model, N=2**22, order=3, alpha_override=500)
+    prorj_prices = proj_pricer.price_strikes(
+        option_params["ttm"], option_params["strikes"], [True]*len(option_params["strikes"]))
+    return prorj_prices
 
 
 if __name__ == "__main__":

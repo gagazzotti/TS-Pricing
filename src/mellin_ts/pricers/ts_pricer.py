@@ -32,13 +32,8 @@ class TemperedStablePricer:
         beta_m: float,
         lambda_m: float,
     ):
-        # raw parameters
-        self.alpha_p = alpha_p
-        self.beta_p = beta_p
-        self.lambda_p = lambda_p
-        self.alpha_m = alpha_m
-        self.beta_m = beta_m
-        self.lambda_m = lambda_m
+        self.params = {"alpha_p": alpha_p, "beta_p": beta_p, "lambda_p": lambda_p,
+                       "alpha_m": alpha_m, "beta_m": beta_m, "lambda_m": lambda_m}
         # transformed parameters
         self.ap = -alpha_p * sc.gamma(-beta_p)
         self.am = -alpha_m * sc.gamma(-beta_m)
@@ -46,6 +41,9 @@ class TemperedStablePricer:
         self.gamma = self.get_gamma()
         # convexity adjustment
         self.zeta = self.get_zeta()
+        # term for computations (storing)
+        self.bpn2 = None
+        self.bmn3 = None
         return
 
     def get_gamma(self) -> float:
@@ -76,111 +74,80 @@ class TemperedStablePricer:
         )
         return -(zeta_p + zeta_m)
 
-    def a2_3_indexes(self, ttm, k, n1, n2, n3):
-        taylor = (-1) ** (n1 + n2 + n3) / (
-            sc.factorial(n1) * sc.factorial(n2) * sc.factorial(n3)
-        )
-        sc.pochhamer_symb = sc.poch(1 + self.beta_p * n2, n1)
-        gamma_term = sc.gamma(-1 - n1 - self.beta_p * n2 - self.beta_m * n3) / (
-            sc.gamma(-self.beta_p * n2) * sc.gamma(-self.beta_m * n3)
-        )
+    def c2(self, k, n1, n2, n3):
+        pochhamer_symb = sc.poch(1 + self.bpn2, n1)
+        linear_n = -1 - n1 - self.bpn2 - self.bmn3
+        gamma_term = sc.gamma(linear_n) / \
+            (sc.gamma(-self.bpn2) * sc.gamma(-self.bmn3))
         gamma_term[:, 0, 0] = 0
         # time term
-        at_term = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
-        a2 = taylor * sc.pochhamer_symb * gamma_term * at_term
-        ulambda_term = self.ulambda ** (1 + n1 +
-                                        self.beta_p * n2 + self.beta_m * n3)
+        a2 = pochhamer_symb * gamma_term
+        ulambda_term = self.ulambda ** (-linear_n)
         k_vec = np.ones_like(n1).astype(float) * k.item()
-        function_term = (
-            np.exp(k_vec)
-            * (self.lambda_p - 1) ** (-1 - n1)
-            * (gamma_lower_cpp(1 + n1, -(self.lambda_p - 1) * k_vec))
-        ) - (
-            (self.lambda_p) ** (-1 - n1)
-            * (gamma_lower_cpp(1 + n1, -(self.lambda_p) * k_vec))
-        )
-        full_a2 = -a2 * function_term * ulambda_term
+        lower_gamma_an = np.exp(k_vec) * (self.lambda_p - 1) ** (-1 - n1) * \
+            (gamma_lower_cpp(1 + n1, -(self.lambda_p - 1) * k_vec))
+        lower_gamma_cn = (self.lambda_p) ** (-1 - n1) * \
+            (gamma_lower_cpp(1 + n1, -self.lambda_p * k_vec))
+        function_term = lower_gamma_an-lower_gamma_cn
+        full_a2 = a2 * function_term * ulambda_term
         return full_a2
 
-    def a1_3_indexes(self, ttm, k, n1, n2, n3):
-        taylor = (-1) ** (n1 + n2 + n3) / (
-            sc.factorial(n1) * sc.factorial(n2) * sc.factorial(n3)
+    def c1(self, k, n1, n2, n3):
+        pochhamer_symb = sc.poch(-self.bmn3, n1) / sc.gamma(
+            1 + self.bpn2
         )
-        sc.pochhamer_symb = sc.poch(-self.beta_m * n3, n1) / sc.gamma(
-            1 + self.beta_p * n2
-        )
-        at_term = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
         ulambda_term = self.ulambda ** (n1)
-        # A1 pas encore vectorisé, on pourra réduire les dimensions une fois A1 fait
         k_vec = np.ones_like(n1 + n2 + n3).astype(float) * float(k)
-        # piecwise
-        low_gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
-        # gamma_term in 0,0,0
-        # other
-        low_gamma_term = sc.gamma(1 - n1 + self.beta_p * n2 + self.beta_m * n3) / (
-            sc.gamma(-self.beta_p * n2)
+        linear_n = - n1 + self.bpn2 + self.bmn3
+        gamma_term = sc.gamma(1 + linear_n) / (
+            sc.gamma(-self.bpn2)
         )
-        low_gamma_term = low_gamma_term * (
-            (
-                np.exp(k_vec)
-                * (self.lambda_p - 1) ** (-n1 + self.beta_p * n2 + self.beta_m * n3)
-                * np.array(
-                    gamma_lower_cpp(
-                        n1 - self.beta_p * n2 - self.beta_m * n3,
-                        -(self.lambda_p - 1) * k_vec,
-                    )
-                )
-            )
-            - (
-                (self.lambda_p) ** (-n1 + self.beta_p * n2 + self.beta_m * n3)
-                * np.array(
-                    gamma_lower_cpp(
-                        n1 - self.beta_p * n2 - self.beta_m * n3,
-                        -(self.lambda_p) * k_vec,
-                    )
-                )
-            )
-        ).astype(float)
+        lower_gamma_an = np.exp(k_vec) * (self.lambda_p - 1) ** (linear_n) * gamma_lower_cpp(
+            -linear_n,
+            -(self.lambda_p - 1) * k_vec
+        )
+        lower_gamma_cn = (self.lambda_p)**(linear_n) * \
+            gamma_lower_cpp(-linear_n, -(self.lambda_p) * k_vec)
+        low_gamma_term = gamma_term*(lower_gamma_an-lower_gamma_cn)
 
         # multiplication par e^{k}-1
         low_gamma_term[0, 0, 0] = (
-            self.beta_p / (self.beta_m + self.beta_p) *
-            (np.exp(k) - 1).astype(float)
-        )
+            self.beta_p/(self.beta_m + self.beta_p) * (np.exp(k) - 1))
 
         # gamma_term in >1,0,0
         low_gamma_term[1:, 0, 0] = 0
-        a1 = taylor * sc.pochhamer_symb * at_term
-        full_a1 = -a1 * ulambda_term * low_gamma_term
+        full_a1 = pochhamer_symb * ulambda_term * low_gamma_term
         return full_a1
 
-    def serie1(
+    def serie(
         self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
     ):
-        term1_3_index = self.a1_3_indexes(ttm, k, n1, n2, n3)
-        serie1 = (term1_3_index).sum(axis=(0, 1, 2))
-        term2_3_index = self.a2_3_indexes(ttm, k, n1, n2, n3)
-        serie2 = (term2_3_index).sum(axis=(0, 1, 2))
-        serie = serie1 + serie2
-        return serie
+        # current term that will be repeatedly called
+        self.bpn2 = self.beta_p*n2
+        self.bmn3 = self.beta_m*n3
+        at = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
+        # taylor term
+        fact_n2n3 = ((-1) ** (n2 + n3)) / (sc.factorial(n2) * sc.factorial(n3))
+        fact_n1 = (-1)**n1 / sc.factorial(n1)
+        term1 = self.c1(k, n1, n2, n3)
+        term2 = self.c2(k, n1, n2, n3)
+        term3 = self.c3(k, n1, n2, n3)
+        serie = (at*fact_n2n3*(fact_n1*(term1 + term2) + term3)
+                 ).sum(axis=(0, 1, 2))
+        return -serie
 
-    def serie2(
-        self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
+    def c3(
+        self, k: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
     ):
-        taylor_term = -((-1) ** (n2 + n3)) / \
-            (sc.factorial(n2) * sc.factorial(n3))
         gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
-        gamma_term = sc.gamma(-self.beta_p * n2 - self.beta_m * n3 + n1) / (
-            sc.gamma(1 - self.beta_p * n2 + n1) * sc.gamma(-self.beta_m * n3)
+        gamma_term = sc.gamma(-self.bpn2 - self.bmn3 + n1) / (
+            sc.gamma(1 - self.bpn2 + n1) * sc.gamma(-self.bmn3)
         )
         gamma_term[0, 0, 0] = self.beta_m / (self.beta_m + self.beta_p)
         ulambda_term = self.ulambda ** (self.beta_p *
-                                        n2 + self.beta_m * n3 - n1)
+                                        n2 + self.bmn3 - n1)
         exp_term = np.exp(k) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
-        at = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
-        serie = (taylor_term * gamma_term * exp_term * at * ulambda_term).sum(
-            axis=(0, 1, 2)
-        )
+        serie = (gamma_term * exp_term * ulambda_term)
         return serie
 
     def price(
@@ -203,11 +170,40 @@ class TemperedStablePricer:
             n1 = np.arange(N)[:, None, None]
             n2 = np.arange(N)[None, :, None]
             n3 = np.arange(N)[None, None, :]
-            serie1 = self.serie1(k, ttm, n1, n2, n3)
-            serie2 = self.serie2(k, ttm, n1, n2, n3)
+            serie = self.serie(k, ttm, n1, n2, n3)
             constant_term = np.exp(k - self.zeta * ttm) - 1
             factor_serie = np.exp(self.gamma * ttm)
             factor = K * np.exp(-r * ttm)
             call_price = factor * \
-                (constant_term + factor_serie * (serie1 + serie2))
+                (constant_term + factor_serie * (serie))
             return float(call_price)
+
+    @ property
+    def alpha_p(self):
+        """return the alpha_p parameter"""
+        return self.params["alpha_p"]
+
+    @ property
+    def beta_p(self):
+        """return the beta_p parameter"""
+        return self.params["beta_p"]
+
+    @ property
+    def lambda_p(self):
+        """return the lambda_p parameter"""
+        return self.params["lambda_p"]
+
+    @ property
+    def alpha_m(self):
+        """return the alpha_m parameter"""
+        return self.params["alpha_m"]
+
+    @ property
+    def beta_m(self):
+        """return the beta_m parameter"""
+        return self.params["beta_m"]
+
+    @ property
+    def lambda_m(self):
+        """return the lambda_m parameter"""
+        return self.params["lambda_m"]
