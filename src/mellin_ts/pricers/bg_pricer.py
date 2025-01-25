@@ -161,12 +161,8 @@ class BGPricer:
         )
         # pylint: enable=E1101
 
-        gamma_inc_vec = np.array(
-            gamma_lower_cpp(
-                n_vec + 2 * self.alpha_ubar,
-                -k * self.lambda_p * np.ones_like(n_vec),
-            )
-        )
+        gamma_inc_vec = gamma_lower_cpp(
+            n_vec + 2 * self.alpha_ubar, -k * self.lambda_p)
 
         serie2 = (
             taylor_term
@@ -177,9 +173,7 @@ class BGPricer:
             * gamma_inc_vec
         ).sum() * self.mbg
 
-        gamma_inc_vec_2 = gamma_lower_cpp(
-            1 + n_vec, -k * self.lambda_p * np.ones_like(n_vec)
-        )
+        gamma_inc_vec_2 = gamma_lower_cpp(1 + n_vec, -k * self.lambda_p)
         serie3 = (
             taylor_term
             * sc.gamma(2 * self.alpha_ubar - 1 - n_vec)
@@ -227,7 +221,7 @@ class BGPricer:
         gamma_inc_vec = np.array(
             gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
-                -k * (self.lambda_p - 1) * np.ones_like(n_vec),
+                -k * (self.lambda_p - 1),
             )
         )
 
@@ -241,7 +235,7 @@ class BGPricer:
         ).sum() * self.mbg
 
         gamma_inc_vec_2 = gamma_lower_cpp(
-            1 + n_vec, -k * (self.lambda_p - 1) * np.ones_like(n_vec)
+            1 + n_vec, -k * (self.lambda_p - 1)
         )
         serie3 = (
             taylor_term
@@ -296,14 +290,14 @@ class BGPricer:
         gamma_inc_vec_lamp = np.array(
             gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
-                -k * self.lambda_p * np.ones_like(n_vec),
+                -k * self.lambda_p,
             )
         )
 
         gamma_inc_vec_lamp_m1 = np.array(
             gamma_lower_cpp(
                 n_vec + 2 * self.alpha_ubar,
-                -k * (self.lambda_p - 1) * np.ones_like(n_vec),
+                -k * (self.lambda_p - 1),
             )
         )
 
@@ -322,10 +316,10 @@ class BGPricer:
         ).sum()
 
         gamma_inc_vec_2_lamp = gamma_lower_cpp(
-            1 + n_vec, -k * self.lambda_p * np.ones_like(n_vec)
+            1 + n_vec, -k * self.lambda_p
         )
         gamma_inc_vec_2_lamp_m1 = gamma_lower_cpp(
-            1 + n_vec, -k * (self.lambda_p - 1) * np.ones_like(n_vec)
+            1 + n_vec, -k * (self.lambda_p - 1)
         )
         serie3 = (
             taylor_term

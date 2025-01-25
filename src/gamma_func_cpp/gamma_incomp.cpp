@@ -32,20 +32,15 @@ double gamma_lower_series(double a, double x, size_t max_terms = 100, double tol
     return sum;  // Retourner la somme calculée
 }
 
-// Fonction pour calculer γ(a, x) pour des tableaux de dimensions arbitraires mais égales
+// Fonction pour calculer γ(a, x) pour un tableau de valeurs a et un scalaire x
 py::array_t<double> gamma_lower_incomplete_non_normalized(
     const py::array_t<double>& a_array,
-    const py::array_t<double>& x_array,
+    double x,
     size_t max_terms = 100,
     double tolerance = 1e-10
 ) {
-    // Vérification des dimensions des tableaux
+    // Vérification des dimensions du tableau
     py::buffer_info a_info = a_array.request();
-    py::buffer_info x_info = x_array.request();
-
-    if (a_info.shape != x_info.shape) {
-        throw std::invalid_argument("Les tableaux d'entrée doivent avoir les mêmes dimensions.");
-    }
 
     // Création du tableau de sortie avec les mêmes dimensions
     auto result_array = py::array_t<double>(a_info.shape);
@@ -53,7 +48,6 @@ py::array_t<double> gamma_lower_incomplete_non_normalized(
 
     // Accès aux données des tableaux
     double* a_ptr = static_cast<double*>(a_info.ptr);
-    double* x_ptr = static_cast<double*>(x_info.ptr);
     double* result_ptr = static_cast<double*>(result_info.ptr);
 
     // Calcul pour chaque élément
@@ -63,7 +57,7 @@ py::array_t<double> gamma_lower_incomplete_non_normalized(
     }
 
     for (size_t idx = 0; idx < total_elements; ++idx) {
-        result_ptr[idx] = gamma_lower_series(a_ptr[idx], x_ptr[idx], max_terms, tolerance);  // Calcul pour chaque élément
+        result_ptr[idx] = gamma_lower_series(a_ptr[idx], x, max_terms, tolerance);  // Calcul pour chaque élément
     }
 
     return result_array;  // Retourner le tableau de résultats
@@ -74,18 +68,18 @@ PYBIND11_MODULE(gamma_incomp, m) {
         "gamma_lower_incomplete_non_normalized",
         &gamma_lower_incomplete_non_normalized, 
         py::arg("a_array"), 
-        py::arg("x_array"), 
+        py::arg("x"), 
         py::arg("max_terms") = 100, 
         py::arg("tolerance") = 1e-10,
         R"docstring(
-        Calculer la fonction gamma incomplète inférieure non normalisée γ(a, x) pour des tableaux de mêmes dimensions en utilisant une expansion en série.
+        Calculer la fonction gamma incomplète inférieure non normalisée γ(a, x) pour un tableau de paramètres a et un scalaire x.
 
         Arguments:
         ----------
         - a_array : numpy.ndarray
-            Tableau de paramètres a (doit avoir les mêmes dimensions que x_array).
-        - x_array : numpy.ndarray
-            Tableau de paramètres x (doit avoir les mêmes dimensions que a_array).
+            Tableau de paramètres a.
+        - x : float
+            Scalaire x utilisé dans le calcul.
         - max_terms : int, optionnel (par défaut 100)
             Nombre maximal de termes dans l'expansion en série.
         - tolerance : float, optionnel (par défaut 1e-10)
@@ -94,7 +88,7 @@ PYBIND11_MODULE(gamma_incomp, m) {
         Retourne:
         ---------
         numpy.ndarray :
-            Tableau contenant les valeurs calculées de γ(a, x) pour chaque élément des tableaux d'entrée.
+            Tableau contenant les valeurs calculées de γ(a, x) pour chaque élément de a_array.
         )docstring"
     );
 }

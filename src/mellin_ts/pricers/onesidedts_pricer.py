@@ -129,9 +129,9 @@ class OneSidedTemperedStablePricer:
             sc.factorial(n_vec) * sc.gamma(-n_vec * self.beta)
         )
         gamma_incomplete_vect = gamma_upper(-self.beta *
-                                            n_vec, N * [-k * self.lambd])
+                                            n_vec, -k * self.lambd)
         gamma_incomplete_1_vect = gamma_upper(
-            -self.beta * n_vec, N * [-k * (self.lambd - 1)]
+            -self.beta * n_vec, -k * (self.lambd - 1)
         )
         diff_vect = (
             np.exp(k)

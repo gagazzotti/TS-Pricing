@@ -74,40 +74,41 @@ class TemperedStablePricer:
         )
         return -(zeta_p + zeta_m)
 
-    def c2(self, k, n1, n2, n3):
-        pochhamer_symb = sc.poch(1 + self.bpn2, n1)
-        linear_n = -1 - n1 - self.bpn2 - self.bmn3
+    def c2(self, k, n1, bpn2, bmn3):
+        """TBD"""
+        pochhamer_symb = sc.poch(1 + bpn2, n1)
+        linear_n = -1 - n1 - bpn2 - bmn3
         gamma_term = sc.gamma(linear_n) / \
-            (sc.gamma(-self.bpn2) * sc.gamma(-self.bmn3))
+            (sc.gamma(-bpn2) * sc.gamma(-bmn3))
         gamma_term[:, 0, 0] = 0
         # time term
         a2 = pochhamer_symb * gamma_term
         ulambda_term = self.ulambda ** (-linear_n)
-        k_vec = np.ones_like(n1).astype(float) * k.item()
-        lower_gamma_an = np.exp(k_vec) * (self.lambda_p - 1) ** (-1 - n1) * \
-            (gamma_lower_cpp(1 + n1, -(self.lambda_p - 1) * k_vec))
+        lower_gamma_an = np.exp(k) * (self.lambda_p - 1) ** (-1 - n1) * \
+            (gamma_lower_cpp(1 + n1, -(self.lambda_p - 1) * k))
         lower_gamma_cn = (self.lambda_p) ** (-1 - n1) * \
-            (gamma_lower_cpp(1 + n1, -self.lambda_p * k_vec))
+            (gamma_lower_cpp(1 + n1, -self.lambda_p * k))
         function_term = lower_gamma_an-lower_gamma_cn
         full_a2 = a2 * function_term * ulambda_term
         return full_a2
 
-    def c1(self, k, n1, n2, n3):
-        pochhamer_symb = sc.poch(-self.bmn3, n1) / sc.gamma(
-            1 + self.bpn2
+    def c1(self, k, n1, bpn2, bmn3):
+        """TBD"""
+        pochhamer_symb = sc.poch(-bmn3, n1) / sc.gamma(
+            1 + bpn2
         )
         ulambda_term = self.ulambda ** (n1)
-        k_vec = np.ones_like(n1 + n2 + n3).astype(float) * float(k)
-        linear_n = - n1 + self.bpn2 + self.bmn3
+        linear_n = - n1 + bpn2 + bmn3
         gamma_term = sc.gamma(1 + linear_n) / (
-            sc.gamma(-self.bpn2)
+            sc.gamma(-bpn2)
         )
-        lower_gamma_an = np.exp(k_vec) * (self.lambda_p - 1) ** (linear_n) * gamma_lower_cpp(
+        lower_gamma_an = np.exp(k) * (self.lambda_p - 1) ** (linear_n) * gamma_lower_cpp(
             -linear_n,
-            -(self.lambda_p - 1) * k_vec
+            -(self.lambda_p - 1) * k
         )
         lower_gamma_cn = (self.lambda_p)**(linear_n) * \
-            gamma_lower_cpp(-linear_n, -(self.lambda_p) * k_vec)
+            gamma_lower_cpp(-linear_n, -(self.lambda_p) * k)
+        # print(gamma_lower_cpp(-linear_n, -(self.lambda_p) * k))
         low_gamma_term = gamma_term*(lower_gamma_an-lower_gamma_cn)
 
         # multiplication par e^{k}-1
@@ -119,36 +120,53 @@ class TemperedStablePricer:
         full_a1 = pochhamer_symb * ulambda_term * low_gamma_term
         return full_a1
 
+    def c3(self, k: float, n1: npt.NDArray, bpn2, bmn3):
+        """TBD"""
+        # gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
+        gamma_term = sc.gamma(-bpn2 - bmn3 + n1) / (
+            sc.gamma(1 - bpn2 + n1) * sc.gamma(-bmn3)
+        )
+        gamma_term[0, 0, 0] = self.beta_m / (self.beta_m + self.beta_p)
+        ulambda_term = self.ulambda ** (bpn2 + bmn3 - n1)
+        exp_term = np.exp(k) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
+        serie = (gamma_term * exp_term * ulambda_term)
+        return serie
+
     def serie(
         self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
     ):
+        """TBD"""
         # current term that will be repeatedly called
-        self.bpn2 = self.beta_p*n2
-        self.bmn3 = self.beta_m*n3
+        bpn2 = self.beta_p*n2
+        bmn3 = self.beta_m*n3
         at = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
         # taylor term
         fact_n2n3 = ((-1) ** (n2 + n3)) / (sc.factorial(n2) * sc.factorial(n3))
         fact_n1 = (-1)**n1 / sc.factorial(n1)
-        term1 = self.c1(k, n1, n2, n3)
-        term2 = self.c2(k, n1, n2, n3)
-        term3 = self.c3(k, n1, n2, n3)
+        term1 = self.c1(k, n1, bpn2, bmn3)
+        term2 = self.c2(k, n1, bpn2, bmn3)
+        term3 = self.c3(k, n1, bpn2, bmn3)
         serie = (at*fact_n2n3*(fact_n1*(term1 + term2) + term3)
                  ).sum(axis=(0, 1, 2))
         return -serie
 
-    def c3(
-        self, k: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
+    def serie_otm(
+        self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
     ):
-        gamma_term = np.zeros_like(n1 + n2 + n3).astype(float)
-        gamma_term = sc.gamma(-self.bpn2 - self.bmn3 + n1) / (
-            sc.gamma(1 - self.bpn2 + n1) * sc.gamma(-self.bmn3)
-        )
-        gamma_term[0, 0, 0] = self.beta_m / (self.beta_m + self.beta_p)
-        ulambda_term = self.ulambda ** (self.beta_p *
-                                        n2 + self.bmn3 - n1)
-        exp_term = np.exp(k) * (self.lambda_p - 1) ** n1 - self.lambda_p**n1
-        serie = (gamma_term * exp_term * ulambda_term)
-        return serie
+        """TBD"""
+        # current term that will be repeatedly called
+        bpn2 = self.beta_p*n2
+        bmn3 = self.beta_m*n3
+        at = (self.ap * ttm) ** n2 * (self.am * ttm) ** n3
+        # taylor term
+        fact_n2n3 = ((-1) ** (n2 + n3)) / (sc.factorial(n2) * sc.factorial(n3))
+        fact_n1 = (-1)**n1 / sc.factorial(n1)
+        term1 = self.c1(k, n1, bpn2, bmn3)
+        term2 = self.c2(k, n1, bpn2, bmn3)
+        term3 = self.c3(k, n1, bpn2, bmn3)
+        serie = (at*fact_n2n3*(fact_n1*(term1 + term2) + term3)
+                 ).sum(axis=(0, 1, 2))
+        return -serie
 
     def price(
         self,
@@ -159,13 +177,36 @@ class TemperedStablePricer:
         ttm: float,
         N: int = 5,
     ):
+        """TBD"""
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
         if k > 0:
-            raise NotImplementedError(
-                "Negative moneyness not implemented so far.")
-        elif k == 0:
-            raise NotImplementedError(
-                "Negative moneyness not implemented so far.")
+            n1 = np.arange(N)[:, None, None]
+            n2 = np.arange(N)[None, :, None]
+            n3 = np.arange(N)[None, None, :]
+            # print("###")
+            self.params = {"alpha_p": self.alpha_m,
+                           "beta_p": self.beta_m,
+                           "lambda_p": self.lambda_m,
+                           "alpha_m": self.alpha_p,
+                           "beta_m": self.beta_p,
+                           "lambda_m": self.lambda_p}
+            # print(self.params)
+            serie = self.serie(-k, ttm, n1, n2, n3)
+            self.params = {"alpha_p": self.alpha_m,
+                           "beta_p": self.beta_m,
+                           "lambda_p": self.lambda_m,
+                           "alpha_m": self.alpha_p,
+                           "beta_m": self.beta_p,
+                           "lambda_m": self.lambda_p}
+            # print(self.params)
+            # print("###")
+
+            constant_term = np.exp(-k - self.zeta * ttm) - 1
+            factor_serie = np.exp(self.gamma * ttm)
+            factor = K * np.exp(-r * ttm)
+            call_price = factor * (constant_term + factor_serie * serie)
+            call_price_itm = S0*np.exp(-q*ttm)-K*np.exp(-r*ttm)-call_price
+            return call_price_itm
         else:
             n1 = np.arange(N)[:, None, None]
             n2 = np.arange(N)[None, :, None]
@@ -174,9 +215,8 @@ class TemperedStablePricer:
             constant_term = np.exp(k - self.zeta * ttm) - 1
             factor_serie = np.exp(self.gamma * ttm)
             factor = K * np.exp(-r * ttm)
-            call_price = factor * \
-                (constant_term + factor_serie * (serie))
-            return float(call_price)
+            call_price = factor * (constant_term + factor_serie * serie)
+            return call_price
 
     @ property
     def alpha_p(self):

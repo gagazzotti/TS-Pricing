@@ -23,7 +23,7 @@ class TestMellinBG(unittest.TestCase):
         ts_params = dict(
             alpha_p=0.58,
             lambda_p=1.38,
-            alpha_m=1 / 3,
+            alpha_m=1/3,
             lambda_m=0.4,
         )
         strike = 1.5

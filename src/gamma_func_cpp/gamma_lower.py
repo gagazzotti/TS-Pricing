@@ -10,7 +10,7 @@ from src.gamma_func_cpp.gamma_incomp import (
 # pylint: enable=all
 
 
-def gamma_lower(a: npt.NDArray, z: npt.NDArray, N: int = 150, tolerance: float = 1e-15):
+def gamma_lower(a: npt.NDArray, z: float, N: int = 150, tolerance: float = 1e-15):
     """
     TBD
 

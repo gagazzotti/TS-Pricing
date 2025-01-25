@@ -34,23 +34,28 @@ def main():
         lambda_p=1.4,
         alpha_m=0.35,
         beta_m=0.5 - np.pi / 100,
-        lambda_m=0.4,
+        lambda_m=1.2,
     )
     n_start, n_end = 1, 101
     range_n = np.arange(n_start, n_end, 5) - 1
     range_n[0] = 1
     range_n = list(range_n)
-    ttm = 1
-    option_params = dict(S0=np.arange(0.5, 1.5, 0.05), r=0.02, q=0.05, ttm=ttm,
-                         strike=1)
     ts_pricer = TemperedStablePricer(**ts_params)
     zeta = ts_pricer.zeta
+    option_params = dict(S0=np.arange(1.2, 1.6, 0.05), r=0.00, q=0.00, ttm=1,
+                         strike=1)
+    # range_s0 = np.hstack((option_params["S0"], option_params["strike"]*np.exp(-(
+    #     option_params["r"]-option_params["q"]+zeta)*option_params["ttm"])))
+    # option_params["S0"] = np.sort(range_s0)
     moneyness = compute_moneyness(option_params, zeta)
+    print("Moneyness", moneyness)
     proj_prices = get_proj_prices(option_params, ts_params)
     mellin_prices = get_mellin_prices(
-        option_params, ts_pricer, [10, 15, 20, 30])
-    print(option_params["S0"], mellin_prices)
-    x_axis = moneyness  # option_params["S0"],
+        option_params, ts_pricer, [50])
+    print(proj_prices)
+    print(mellin_prices)
+    # print(option_params["S0"], mellin_prices)
+    x_axis = option_params["S0"]
     plt.plot(x_axis, proj_prices, label="PROJ")
     for n, price_mellin in mellin_prices.items():
         plt.scatter(x_axis, price_mellin,
@@ -59,7 +64,7 @@ def main():
              * (option_params["S0"]-option_params["strike"] >= 0), label=r"$x\mapsto (x-K)^+$")
     plt.grid()
     plt.legend()
-    plt.xlabel(r"$K$")
+    plt.xlabel(r"$k$")
     plt.ylim(0, 1)
     plt.show()
 
