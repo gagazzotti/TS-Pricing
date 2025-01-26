@@ -30,7 +30,6 @@ class TestMellinBG(unittest.TestCase):
         ttm = 1.2
         strikes = np.arange(1.2, 1.5, 0.1)
         ttms = np.arange(0.7, 1.5, 0.1)
-        ttms = [1]
         log10_error = []
         for strike in strikes:
             for ttm in ttms:

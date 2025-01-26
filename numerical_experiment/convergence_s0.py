@@ -1,20 +1,19 @@
 """TBD"""
 
-import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
+
+# pylint: disable=W0611
 import scienceplots
+
+# pylint: enable=W0611
 import tqdm
 from fypy.model.levy.TemperedStable import TemperedStable
 from fypy.pricing.fourier.ProjEuropeanPricer import ProjEuropeanPricer
-from fypy.pricing.StrikesPricer import StrikesPricer
 from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
-from matplotlib.ticker import FuncFormatter
 
-from src.mellin_ts.pricers.onesidedts_pricer import OneSidedTemperedStablePricer
 from src.mellin_ts.pricers.ts_pricer import TemperedStablePricer
 
 plt.style.use(["science"])
@@ -28,50 +27,42 @@ def compute_moneyness(option_params: dict, zeta: float):
 
 def main():
     """Testing the convergence of the pricer"""
-    ts_params = dict(
-        alpha_p=0.44,
-        beta_p=0.1 + np.exp(1) / 10,
-        lambda_p=1.4,
-        alpha_m=0.35,
-        beta_m=0.5 - np.pi / 100,
-        lambda_m=0.4,
-        # alpha_m=0.44,
-        # beta_m=0.1 + np.exp(1) / 10,
-        # lambda_m=1.4,
-    )
-    n_start, n_end = 1, 101
-    range_n = np.arange(n_start, n_end, 5) - 1
-    range_n[0] = 1
-    range_n = list(range_n)
-    ts_pricer = TemperedStablePricer(**ts_params)
-    zeta = ts_pricer.zeta
-    option_params = dict(S0=np.arange(0.5, 1.5, 0.1),
-                         r=0.02, q=0.05, ttm=0.7, strike=1)
-    # range_s0 = np.hstack((option_params["S0"], option_params["strike"]*np.exp(-(
-    #     option_params["r"]-option_params["q"]+zeta)*option_params["ttm"])))
-    # option_params["S0"] = np.sort(range_s0)
-    moneyness = compute_moneyness(option_params, zeta)
-    print("Moneyness")
-    print(np.array(moneyness))
-    proj_prices = get_proj_prices(option_params, ts_params)
-    mellin_prices = get_mellin_prices(
-        option_params, ts_pricer, [50])
-    print(np.array(proj_prices))
-    print(np.array(mellin_prices[50]))
-    # print(option_params["S0"], mellin_prices)
-    x_axis = option_params["S0"]
+    for ttm in [0.05, 0.25, 0.5, 0.75, 1]:
+        ts_params = dict(
+            alpha_p=0.4,
+            beta_p=0.1 + np.exp(1) / 10,
+            lambda_p=1.4,
+            alpha_m=0.35,
+            beta_m=0.5 - np.pi / 100,
+            lambda_m=0.4
+        )
+        n_start, n_end = 1, 101
+        range_n = np.arange(n_start, n_end, 5) - 1
+        range_n[0] = 1
+        range_n = list(range_n)
+        ts_pricer = TemperedStablePricer(**ts_params)
+        option_params = dict(S0=np.arange(0.2, 1.9, 0.02),
+                             r=0.02, q=0.05, ttm=ttm, strike=1)
+        proj_prices = get_proj_prices(option_params, ts_params)
+        mellin_prices = get_mellin_prices(option_params, ts_pricer, [80])
+        x_axis = option_params["S0"]
+        payoff = (option_params["S0"]-option_params["strike"]) * \
+            (option_params["S0"]-option_params["strike"] >= 0)
 
-    plt.plot(x_axis, proj_prices, label="PROJ")
-    for n, price_mellin in mellin_prices.items():
-        plt.scatter(x_axis, price_mellin,
-                    marker="x", label=fr"Mellin series $N={n}$")
-    plt.plot(x_axis, (option_params["S0"]-option_params["strike"])
-             * (option_params["S0"]-option_params["strike"] >= 0), label=r"$x\mapsto (x-K)^+$")
-    plt.grid()
-    plt.legend()
-    plt.xlabel(r"$k$")
-    plt.ylim(0, 1)
-    plt.show()
+        plt.figure(figsize=(6, 4))
+        plt.plot(x_axis, proj_prices, "--", label="PROJ", color="green")
+        for n, price_mellin in mellin_prices.items():
+            plt.scatter(x_axis[::2], price_mellin[::2], marker="x",
+                        label=fr"Mellin series $N={n}$", color="black")
+        plt.plot(x_axis, payoff, label=r"$x\mapsto (x-K)^+$",
+                 color="red", linewidth=2)
+        plt.grid()
+        plt.legend()
+        plt.xlabel(r"$S_0$")
+        plt.ylabel("Price")
+        plt.ylim(0, 1)
+        plt.savefig(f"numerical_experiment/output/call_{ttm}.png", dpi=300)
+        plt.close()
 
 
 def get_proj_prices(
@@ -132,6 +123,7 @@ def get_mellin_prices(
                                         option_params["q"], option_params["ttm"], N=n)
             except NotImplementedError:
                 price = np.nan
+
             mellin_prices_list.append(price)
         mellin_prices[n] = mellin_prices_list
     return mellin_prices
