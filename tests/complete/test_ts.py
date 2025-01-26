@@ -35,7 +35,7 @@ class TestMellinTS(unittest.TestCase):
             for ttm in ttms:
                 option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
                 ts_p_pricer = TemperedStablePricer(**ts_params)
-                price = ts_p_pricer.price(**option_params, N=80)
+                price = ts_p_pricer.price(**option_params, N=60)
                 disc_curve = DiscountCurve_ConstRate(rate=option_params["r"])
                 div_disc = DiscountCurve_ConstRate(rate=option_params["q"])
                 fwd = EquityForward(

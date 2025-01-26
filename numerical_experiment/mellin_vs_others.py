@@ -62,8 +62,8 @@ def main():
     )
     strike = 1.5
     ttm = 1.2
-    eps_ts_p = 10.0 ** (-np.arange(2, 4))
-    eps_ts = 10.0 ** (-np.arange(2, 4))
+    eps_ts_p = 10.0 ** (-np.arange(5, 10))
+    eps_ts = 10.0 ** (-np.arange(5, 10))
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
     # mellin ts
     mellin_time_ts = get_time_mellin_ts(option_params, ts_params, eps_ts)
@@ -122,10 +122,10 @@ def get_time_proj_ts(option_params: dict, ts_params: dict, eps: list, one_sided=
     # print("-----")
     if one_sided:
         proj_price_ref = 0.18769860488549217
-        alpha_list = [np.nan, 10, 12.5, 15, 17.5, 20]
+        alpha_list = [np.nan, 7.5, 8.5, 10, 12.5]
     else:
         proj_price_ref = 0.22968572289948497
-        alpha_list = [np.nan, 25, 30, 35, 40, 50]
+        alpha_list = [np.nan, 25, 30, 40, 50]
 
     comp_time = {error: {str(alpha): 0 for alpha in alpha_list}
                  for error in eps}
@@ -161,7 +161,7 @@ def get_time_proj_ts(option_params: dict, ts_params: dict, eps: list, one_sided=
 
 def get_time_proj_bg(option_params: dict, bg_params: dict, eps: list):
     proj_price_ref = 0.2599191174562806
-    alpha_list = [np.nan, 10, 12.5, 15, 17.5, 20]
+    alpha_list = [np.nan, 25, 30, 40, 50]
     comp_time = {error: {str(alpha): 0 for alpha in alpha_list}
                  for error in eps}
     fwd, disc_curve = get_proj_curves(option_params)
@@ -266,14 +266,14 @@ def save_results(df: pd.DataFrame, title: str, latex: bool = True):
     # Sauvegarder le DataFrame en .txt
     path = "numerical_experiment/output/"
     txt_filename = f"{title}.txt"
-    df.to_csv(path + txt_filename, sep="\t", index=False)
+    df.to_csv(path + txt_filename, sep="\t", index=True)
     print(f"DataFrame sauvegardé en {txt_filename}")
 
     # Sauvegarder en LaTeX si latex=True
     if latex:
         latex_filename = path + f"{title}.tex"
         with open(latex_filename, mode="w", encoding="utf-8") as f:
-            f.write(df.to_latex(index=False))
+            f.write(df.to_latex(index=True))
         print(f"DataFrame sauvegardé en {latex_filename}")
 
 
