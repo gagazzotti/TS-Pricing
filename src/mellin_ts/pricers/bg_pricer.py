@@ -340,7 +340,7 @@ class BGPricer:
         serie1 = serie1_1 + serie1_2
         return serie1 - serie2 - serie3
 
-    def price_eur(
+    def price(
         self,
         S0: float,
         K: float,

@@ -226,7 +226,7 @@ def get_time_mellin_bg(option_params: dict, bg_params: dict, eps: dict):
         price = 0
         while np.abs(price - proj_price_ref) > error and n < nmax:
             t0 = time.time()
-            price = bg_pricer.price_eur(**option_params, N=n)
+            price = bg_pricer.price(**option_params, N=n)
             comp_time["Mellin"][error] = time.time() - t0
             n += 1
         if n == nmax:
