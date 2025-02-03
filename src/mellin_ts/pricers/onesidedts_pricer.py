@@ -1,4 +1,4 @@
-"""TBD"""
+"""OneSidedTS Pricer"""
 
 import warnings
 
@@ -11,7 +11,7 @@ from src.gamma_func_cpp.gamma_lower import (
 
 
 def gamma_upper(a, z):
-    """TBD"""
+    """upper gamma incomplete"""
     return sc.gamma(a) - gamma_lower_cpp(a, z)
 
 
