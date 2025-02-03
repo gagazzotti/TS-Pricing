@@ -14,7 +14,8 @@ BG/
 olds/
 text.txt
 *.egg-info
-
+# special file
+src/gamma_func_cpp/gamma_command.txt
 # Distribution / packaging
 .Python
 build/
