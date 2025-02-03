@@ -1,4 +1,4 @@
-"""TBD"""
+"""BGPricer class"""
 
 import warnings
 
@@ -10,7 +10,6 @@ from src.gamma_func_cpp.gamma_lower import (
     gamma_lower as gamma_lower_cpp,
 )
 
-# TODO: do with T\neq 1
 
 warnings.filterwarnings("ignore")
 
@@ -66,7 +65,7 @@ class BGPricer:
 
     def get_mbg(self, ttm: float):
         """TBD"""
-        # Constante densité de BG
+        # density constant BG
         numerator = (self.lambda_p**(self.alpha_p*ttm)) * \
             (self.lambda_m**(self.alpha_m*ttm))
         denominator = (
@@ -77,6 +76,121 @@ class BGPricer:
         )
         Mbg = numerator / denominator
         return Mbg
+
+    def serie_eur(
+        self,
+        k: float | npt.NDArray[np.float64],
+        ttm: float | npt.NDArray[np.float64],
+        N: int,
+    ):
+        """European option pricing with Mellin series"""
+
+        # BG model constants
+        alpha_p_t = self.alpha_p*ttm
+        alpha_m_t = self.alpha_m*ttm
+        alpha_ubar_t = self.alpha_ubar*ttm
+        alpha_bar_t = self.alpha_bar*ttm
+
+        n_vec = np.arange(0, N)
+        fact_n = sc.factorial(n_vec)
+        taylor_term = (-1) ** n_vec / fact_n
+        am_plus_m = sc.gamma(alpha_m_t + n_vec)
+        two_alpha_bar_plus_n = sc.gamma(n_vec + 2 * alpha_ubar_t)
+        one_minus_alphap_plus_n = sc.gamma(1 - alpha_p_t + n_vec)
+
+        serie1_1 = (
+            taylor_term
+            * am_plus_m
+            * one_minus_alphap_plus_n
+            * sc.gamma(alpha_p_t - n_vec)
+            * self.lambda_ubar ** (alpha_bar_t - n_vec)
+            * (
+                np.exp(k) * (self.lambda_p - 1) ** (n_vec - alpha_p_t)
+                - (self.lambda_p) ** (n_vec - alpha_p_t)
+            )
+        ).sum()
+
+        serie1_2 = (
+            taylor_term
+            * two_alpha_bar_plus_n
+            * fact_n
+            * sc.gamma(-alpha_p_t - n_vec)
+            * self.lambda_ubar ** (-alpha_ubar_t - n_vec)
+            * (np.exp(k) * (self.lambda_p - 1) ** (n_vec) - (self.lambda_p) ** (n_vec))
+        ).sum()
+
+        gamma_inc_vec_lamp = np.array(
+            gamma_lower_cpp(
+                n_vec + 2 * alpha_ubar_t,
+                -k * self.lambda_p,
+            )
+        )
+
+        gamma_inc_vec_lamp_m1 = np.array(
+            gamma_lower_cpp(
+                n_vec + 2 * alpha_ubar_t,
+                -k * (self.lambda_p - 1),
+            )
+        )
+
+        serie2 = (
+            taylor_term
+            * sc.gamma(1 - n_vec - 2 * alpha_ubar_t)
+            * am_plus_m
+            * self.lambda_ubar ** (alpha_ubar_t + n_vec)
+            * (
+                np.exp(k)
+                * (self.lambda_p - 1) ** (-n_vec - 2 * alpha_ubar_t)
+                * gamma_inc_vec_lamp_m1
+                - self.lambda_p ** (-n_vec - 2 *
+                                    alpha_ubar_t) * gamma_inc_vec_lamp
+            )
+        ).sum()
+
+        gamma_inc_vec_2_lamp = gamma_lower_cpp(
+            1 + n_vec, -k * self.lambda_p
+        )
+        gamma_inc_vec_2_lamp_m1 = gamma_lower_cpp(
+            1 + n_vec, -k * (self.lambda_p - 1)
+        )
+        serie3 = (
+            taylor_term
+            * sc.gamma(2 * alpha_ubar_t - 1 - n_vec)
+            * one_minus_alphap_plus_n
+            * self.lambda_ubar ** (1 + n_vec - alpha_ubar_t)
+            * (
+                np.exp(k)
+                * (self.lambda_p - 1) ** (-1 - n_vec)
+                * gamma_inc_vec_2_lamp_m1
+                - self.lambda_p ** (-1 - n_vec) * gamma_inc_vec_2_lamp
+            )
+        ).sum()
+
+        serie1 = serie1_1 + serie1_2
+        return serie1 - serie2 - serie3
+
+    def price(
+        self,
+        S0: float,
+        K: float,
+        r: float,
+        q: float,
+        ttm: float,
+        N: int = 25,
+        # time_verbose=True,
+    ):
+        """price function"""
+        k = np.log(S0 / K) + (r - q + self.zeta) * ttm
+        if k > 0:
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
+        elif k == 0:
+            raise NotImplementedError(
+                "Negative moneyness not implemented so far.")
+        else:
+            serie = self.serie_eur(k, ttm, N)
+            call_price = self.get_mbg(ttm) * K * np.exp(-r * ttm) * serie
+            return call_price
 
     #######################
     #######################
@@ -244,121 +358,3 @@ class BGPricer:
     #     ).sum() * self.mbg
 
     #     return serie1_1 + serie1_2 - serie2 - serie3
-
-    def serie_eur(
-        self,
-        k: float | npt.NDArray[np.float64],
-        ttm: float | npt.NDArray[np.float64],
-        N: int,
-    ):
-        """TBD"""
-        # faire attention AN => Ke^{k-RT}
-        # CN => e^{-RT}
-        # ici, je fais l'erreur
-
-        alpha_p_t = self.alpha_p*ttm
-        alpha_m_t = self.alpha_m*ttm
-        alpha_ubar_t = self.alpha_ubar*ttm
-        alpha_bar_t = self.alpha_bar*ttm
-
-        n_vec = np.arange(0, N)
-        fact_n = sc.factorial(n_vec)
-        taylor_term = (-1) ** n_vec / fact_n
-        # doublons
-        am_plus_m = sc.gamma(alpha_m_t + n_vec)
-        two_alpha_bar_plus_n = sc.gamma(n_vec + 2 * alpha_ubar_t)
-        one_minus_alphap_plus_n = sc.gamma(1 - alpha_p_t + n_vec)
-
-        serie1_1 = (
-            taylor_term
-            * am_plus_m
-            * one_minus_alphap_plus_n
-            * sc.gamma(alpha_p_t - n_vec)
-            * self.lambda_ubar ** (alpha_bar_t - n_vec)
-            * (
-                np.exp(k) * (self.lambda_p - 1) ** (n_vec - alpha_p_t)
-                - (self.lambda_p) ** (n_vec - alpha_p_t)
-            )
-        ).sum()
-
-        serie1_2 = (
-            taylor_term
-            * two_alpha_bar_plus_n
-            * fact_n
-            * sc.gamma(-alpha_p_t - n_vec)
-            * self.lambda_ubar ** (-alpha_ubar_t - n_vec)
-            * (np.exp(k) * (self.lambda_p - 1) ** (n_vec) - (self.lambda_p) ** (n_vec))
-        ).sum()
-
-        gamma_inc_vec_lamp = np.array(
-            gamma_lower_cpp(
-                n_vec + 2 * alpha_ubar_t,
-                -k * self.lambda_p,
-            )
-        )
-
-        gamma_inc_vec_lamp_m1 = np.array(
-            gamma_lower_cpp(
-                n_vec + 2 * alpha_ubar_t,
-                -k * (self.lambda_p - 1),
-            )
-        )
-
-        serie2 = (
-            taylor_term
-            * sc.gamma(1 - n_vec - 2 * alpha_ubar_t)
-            * am_plus_m
-            * self.lambda_ubar ** (alpha_ubar_t + n_vec)
-            * (
-                np.exp(k)
-                * (self.lambda_p - 1) ** (-n_vec - 2 * alpha_ubar_t)
-                * gamma_inc_vec_lamp_m1
-                - self.lambda_p ** (-n_vec - 2 *
-                                    alpha_ubar_t) * gamma_inc_vec_lamp
-            )
-        ).sum()
-
-        gamma_inc_vec_2_lamp = gamma_lower_cpp(
-            1 + n_vec, -k * self.lambda_p
-        )
-        gamma_inc_vec_2_lamp_m1 = gamma_lower_cpp(
-            1 + n_vec, -k * (self.lambda_p - 1)
-        )
-        serie3 = (
-            taylor_term
-            * sc.gamma(2 * alpha_ubar_t - 1 - n_vec)
-            * one_minus_alphap_plus_n
-            * self.lambda_ubar ** (1 + n_vec - alpha_ubar_t)
-            * (
-                np.exp(k)
-                * (self.lambda_p - 1) ** (-1 - n_vec)
-                * gamma_inc_vec_2_lamp_m1
-                - self.lambda_p ** (-1 - n_vec) * gamma_inc_vec_2_lamp
-            )
-        ).sum()
-
-        serie1 = serie1_1 + serie1_2
-        return serie1 - serie2 - serie3
-
-    def price(
-        self,
-        S0: float,
-        K: float,
-        r: float,
-        q: float,
-        ttm: float,
-        N: int = 25,
-        # time_verbose=True,
-    ):
-        """TBD"""
-        k = np.log(S0 / K) + (r - q + self.zeta) * ttm
-        if k > 0:
-            raise NotImplementedError(
-                "Negative moneyness not implemented so far.")
-        elif k == 0:
-            raise NotImplementedError(
-                "Negative moneyness not implemented so far.")
-        else:
-            serie = self.serie_eur(k, ttm, N)
-            call_price = self.get_mbg(ttm) * K * np.exp(-r * ttm) * serie
-            return call_price
