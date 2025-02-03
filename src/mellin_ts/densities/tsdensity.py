@@ -1,4 +1,4 @@
-"""ts density"""
+"""TS Density class"""
 
 import warnings
 
@@ -68,8 +68,10 @@ class TSDensity:
         points: float | npt.NDArray[np.float64],
         n: int = 20,
         positive: bool = True,
-    ):
-        """TBD"""
+    ) -> float | npt.NDArray[np.float64]:
+        """compute the density based on the mellin series expansion"""
+
+        # 1. reverse parameters using symmetry relation
         if positive:
             lambda_p = self.lambda_p
             beta_p = self.beta_p
@@ -83,10 +85,15 @@ class TSDensity:
             ap = self.am
             am = self.ap
 
+        # 2. detect what type was inputed
         if isinstance(points, float):
             x_vec = np.array([points])[None, None, None, :]
         else:
             x_vec = np.array(points)[None, None, None, :]
+
+        # 3. Compute the series tensor
+
+        #   a. vector of range N, multiplicative term not depending on x
         n1 = np.arange(n)[:, None, None, None]
         n2 = np.arange(n)[None, :, None, None]
         n3 = np.arange(n)[None, None, :, None]
@@ -97,7 +104,7 @@ class TSDensity:
             * ap**n2
             * am**n3
         )
-
+        #   b. First series: term with pochhamer symbol and power of x
         c1 = poch(-beta_m * n3, n1) / gamma(1 + beta_p * n2)
         irr1 = gamma(1 - n1 + beta_p * n2 + beta_m * n3) / \
             (gamma(-beta_p * n2))
@@ -108,6 +115,7 @@ class TSDensity:
             * self.ulambda**n1
             * x_vec ** (-1 + n1 - beta_p * n2 - beta_m * n3)
         )
+        #   c. Second series: term with pochhamer symbol and power of x
         c2 = poch(1 + beta_p * n2, n1)
         irr2 = gamma(-1 - n1 - beta_p * n2 - beta_m * n3) / (
             gamma(-beta_p * n2) * gamma(-beta_m * n3)
@@ -120,12 +128,15 @@ class TSDensity:
             * x_vec ** (n1)
         )
         c2[np.isnan(c2)] = 0
+
+        # 4. Multiplication and summation
+
         dens = prefact * taylor * (c1 + c2)
         dens = dens.sum(axis=(0, 1, 2))
         return dens
 
     def density_mellin(self, points: npt.NDArray[np.float64], n: int = 20):
-        """TBD"""
+        """Compute the mellin density with series expansion"""
         dens = np.zeros_like(points)
         dens[points > 0] = self.density_signed(
             points[points > 0], n=n, positive=True)
@@ -136,7 +147,7 @@ class TSDensity:
     def density_fourier(
         self, points: npt.NDArray[np.float64], du: float = 1e-2, bounds: float = 3e3
     ):
-        """TBD"""
+        """Compute the density using Fourier inversion technique"""
         u = np.arange(-bounds, bounds, du)[None, :]
         integrand = np.exp(
             self.alpha_p
