@@ -80,7 +80,7 @@ As in the toy example, here is a visual comparison between PROJ method and our s
 
 A detailed numerical analysis of the three pricers (propositions ...,... and ...) is sum up in the following figure:
 <div style="display: flex; flex-wrap: wrap; justify-content: center;">
-  <img src="numerical_experiment/output/decreasing_error_with_time.png" width="60%" style="margin: 2px;">
+  <img src="images/decreasing_error_with_time.png" width="60%" style="margin: 2px;">
 </div>
 
 _p.s.: The first image was generated with the code_ ```numerical_experiment/convergence_s0.py``` and the second with ```numerical_experiment/convergence_test.py```.
