@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 class TSDensity:
-    """TBD"""
+    """TS density class"""
 
     def __init__(
         self,
