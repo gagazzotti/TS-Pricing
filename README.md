@@ -56,7 +56,7 @@ source install.bash
 - regarder les todo
 - implement itm, atm
 - BG prices with T
-- 3.corriger le nom alpha_m dans proj pour BG
+- 3.corriger le nom alpha_m dans proj pour BG, CGMY CMGY nom du module et nom de la classe
 
 ## Commande
 

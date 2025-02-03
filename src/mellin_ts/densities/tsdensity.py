@@ -99,7 +99,8 @@ class TSDensity:
         )
 
         c1 = poch(-beta_m * n3, n1) / gamma(1 + beta_p * n2)
-        irr1 = gamma(1 - n1 + beta_p * n2 + beta_m * n3) / (gamma(-beta_p * n2))
+        irr1 = gamma(1 - n1 + beta_p * n2 + beta_m * n3) / \
+            (gamma(-beta_p * n2))
         irr1[1:, 0, 0, :] = ((-1) ** n1 / factorial(n1 - 1))[1:, 0, 0, :]
         c1 = (
             c1
@@ -126,8 +127,10 @@ class TSDensity:
     def density_mellin(self, points: npt.NDArray[np.float64], n: int = 20):
         """TBD"""
         dens = np.zeros_like(points)
-        dens[points > 0] = self.density_signed(points[points > 0], n=n, positive=True)
-        dens[points < 0] = self.density_signed(-points[points < 0], n=n, positive=False)
+        dens[points > 0] = self.density_signed(
+            points[points > 0], n=n, positive=True)
+        dens[points <
+             0] = self.density_signed(-points[points < 0], n=n, positive=False)
         return dens
 
     def density_fourier(

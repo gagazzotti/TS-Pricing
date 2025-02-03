@@ -23,7 +23,7 @@ def get_mellin_dens(
 
 
 def plot_mellin(
-    ax: plt.Axes, densities: dict, x: npt.NDArray[np.float64], threshold=5e-1
+    ax: plt.Axes, densities: dict, x: npt.NDArray[np.float64], threshold=1e2
 ):
     n_max = max(list(densities.keys()))
     for n, dens in densities.items():
@@ -42,11 +42,12 @@ def plot_mellin(
         y_masked[above_threshold] = np.nan
 
         # Plot the function
-        ax.plot(
+        ax.scatter(
             x,
             y_masked,
+            marker="x",
             label=rf"Series expansion $n={n}$",
-            color="blue",
+            color="black",
             alpha=n / n_max,
         )
         # print(print(np.argwhere(y_masked < 0)))
@@ -82,7 +83,7 @@ def plot_fourier(ax1: plt.Axes, density: TSDensity, x: npt.NDArray[np.float64]):
     dens_fourier = density.density_fourier(x_fourier, bounds=1e3, du=1e-1)
     print("Fourier inverted!")
     ax1.plot(
-        x_fourier, dens_fourier, color="black", alpha=0.5, label="Fourier inversion"
+        x_fourier, dens_fourier, color="green", alpha=1, label="Fourier inversion"
     )
 
 
@@ -118,7 +119,7 @@ def build_figure(density: TSDensity, range_n: list[int], x: npt.NDArray[np.float
     ax1 = fig.add_subplot()
     ax1.set_xlim(min(x), max(x) - 0.1)
     ax1.set_xlim(min(x), 5)
-    ax1.set_ylim(0, 0.6)
+    ax1.set_ylim(0, 1)
     ax1.set_xlabel(r"$x$")
     ax2 = ax1.twiny()
     ax2.tick_params(axis="x", length=0)
@@ -139,14 +140,14 @@ def main():
         alpha_p=0.44,
         beta_p=0.1 + np.exp(1) / 10,
         lambda_p=1.4,
-        alpha_m=0.65,
+        alpha_m=0.35,
         beta_m=0.5 - np.pi / 100,
         lambda_m=0.4,
     )
     densTS = TSDensity(**ts_params)
-    x = np.arange(-7.0, 7.0, 5e-2)
+    x = np.arange(-6., 6, .05)
     # x = x[np.abs(x) > 1e-1]
-    range_n = [20, 40]
+    range_n = [60]
     build_figure(densTS, range_n, x)
 
 

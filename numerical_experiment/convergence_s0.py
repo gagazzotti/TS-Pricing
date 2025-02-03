@@ -27,9 +27,9 @@ def compute_moneyness(option_params: dict, zeta: float):
 
 def main():
     """Testing the convergence of the pricer"""
-    for ttm in [0.05, 0.25, 0.5, 0.75, 1]:
+    for ttm in [0.05, 0.1, 0.2, 0.5]:
         ts_params = dict(
-            alpha_p=0.4,
+            alpha_p=0.44,
             beta_p=0.1 + np.exp(1) / 10,
             lambda_p=1.4,
             alpha_m=0.35,
