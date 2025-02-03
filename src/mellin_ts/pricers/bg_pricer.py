@@ -64,7 +64,7 @@ class BGPricer:
         return -np.log(zeta_p)
 
     def get_mbg(self, ttm: float):
-        """TBD"""
+        """Mbg constant"""
         # density constant BG
         numerator = (self.lambda_p**(self.alpha_p*ttm)) * \
             (self.lambda_m**(self.alpha_m*ttm))
@@ -74,8 +74,8 @@ class BGPricer:
             * sc.gamma((self.alpha_m*ttm))
             * sc.gamma(1 - (self.alpha_p*ttm))
         )
-        Mbg = numerator / denominator
-        return Mbg
+        mbg = numerator / denominator
+        return mbg
 
     def serie_eur(
         self,
@@ -191,6 +191,13 @@ class BGPricer:
             serie = self.serie_eur(k, ttm, N)
             call_price = self.get_mbg(ttm) * K * np.exp(-r * ttm) * serie
             return call_price
+
+    #######################################
+    ####### W A R N I N G : to not del ####
+    #######################################
+
+    # version wit 2F1 function: working but was badly implemented
+    # (different AN/CN instead of factoing out some coefficients)
 
     #######################
     #######################
