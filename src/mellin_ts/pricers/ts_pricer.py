@@ -1,4 +1,4 @@
-"""TBD"""
+"""TS Pricer"""
 
 import warnings
 
@@ -75,7 +75,7 @@ class TemperedStablePricer:
         return -(zeta_p + zeta_m)
 
     def c1(self, k, n1, bpn2, bmn3, factor_otm):
-        """TBD"""
+        """c1 coefficient as defined in the paper"""
         pochhamer_symb = sc.poch(-bmn3, n1) / sc.gamma(
             1 + bpn2
         )
@@ -103,7 +103,7 @@ class TemperedStablePricer:
         return full_a1
 
     def c2(self, k, n1, bpn2, bmn3, factor_otm):
-        """TBD"""
+        """c2 coefficient as defined in the paper"""
         pochhamer_symb = sc.poch(1 + bpn2, n1)
         linear_n = -1 - n1 - bpn2 - bmn3
         gamma_term = sc.gamma(linear_n) / \
@@ -121,7 +121,7 @@ class TemperedStablePricer:
         return full_a2
 
     def c3(self, k: float, n1: npt.NDArray, bpn2, bmn3, factor_otm):
-        """TBD"""
+        """c3 coefficient as defined in the paper"""
         gamma_term = sc.gamma(-bpn2 - bmn3 + n1) / (
             sc.gamma(1 - bpn2 + n1) * sc.gamma(-bmn3)
         )
@@ -135,7 +135,7 @@ class TemperedStablePricer:
     def serie(
         self, k: float, ttm: float, n1: npt.NDArray, n2: npt.NDArray, n3: npt.NDArray
     ):
-        """TBD"""
+        """Series of the European option price (defined in the paper)"""
         is_otm = k < 0
         if not is_otm:
             self.reverse_params()
@@ -166,7 +166,7 @@ class TemperedStablePricer:
         ttm: float,
         N: int = 5,
     ):
-        """TBD"""
+        """Price European option (call only)"""
         k = np.log(S0 / K) + (r - q + self.zeta) * ttm
         n1, n2, n3 = self.get_n_vectors(N)
         serie = self.serie(k, ttm, n1, n2, n3)
