@@ -12,7 +12,7 @@ It is the implementation of this paper.
 ## Installation
 A script is available for an easy creation of the conda environment and compilation of auxiliary functions:
 ```bash
-source install.bash
+$ source install.bash
 ```
 
 
@@ -58,9 +58,9 @@ Examples can be found in the ```numerical_experiment``` folder or in the test fo
 ### 1. Tempered Stable density 
 
 The class ```TSDensity``` enables to evaluate the series representation given in proposition ...
-<div style="display: flex; flex-wrap: wrap; justify-content: center;">
+<p align="center">
   <img src="images/densities.png" width="30%" style="margin: 2px;">
-</div>
+</p>
 
 
 _The image was generated with the code_ ```numerical_experiment/densities.py```.
@@ -69,19 +69,19 @@ _The image was generated with the code_ ```numerical_experiment/densities.py```.
 
 As in the toy example, here is a visual comparison between PROJ method and our series expansion. 
 
-<div style="display: flex; flex-wrap: wrap; justify-content: center;">
+<p align="center">
   <img src="images/call_0.05.png" width="30%" style="margin: 2px;">
   <img src="images/call_0.1.png" width="30%" style="margin: 2px;">
-</div>
-<div style="display: flex; flex-wrap: wrap; justify-content: center;">
+</p>
+<p align="center">
   <img src="images/call_0.2.png" width="30%" style="margin: 2px;">
   <img src="images/call_0.5.png" width="30%" style="margin: 2px;">
-</div>
+</p>
 
 A detailed numerical analysis of the three pricers (propositions ...,... and ...) is sum up in the following figure:
-<div style="display: flex; flex-wrap: wrap; justify-content: center;">
+<p align="center">
   <img src="images/decreasing_error_with_time.png" width="60%" style="margin: 2px;">
-</div>
+</p>
 
 _p.s.: The first image was generated with the code_ ```numerical_experiment/convergence_s0.py``` and the second with ```numerical_experiment/convergence_test.py```.
 
