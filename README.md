@@ -40,12 +40,13 @@ ts_params = {
 }
 
 # define the parameters of the European option
-option_params = {"S0": 1,
-                 "K": 1.5,
-                 "r": 0.02,
-                 "q": 0.05,
-                 "ttm": 1.2
-                 }
+option_params = {
+    "S0": 1,
+    "K": 1.5,
+    "r": 0.02,
+    "q": 0.05,
+    "ttm": 1.2
+}
 
 # define the associated TS pricer 
 ts_p_pricer = TemperedStablePricer(**ts_params)
@@ -117,21 +118,10 @@ If you use it, a reference to the paper would be highly appreciated.
 
 ## Todo
 
-- check that the cpp code gamma_incomp pour upper gamma et upper gamma_vect is the right one (recompile and check)
-- check that the conda env is enough to generate the code (add +git@https://...)
-- do a toy example
 - do the short time behaviour
-- remove tests/test_vect.py, ./test.py
-- faire computational time comme mtn mais avec différent $N$ pour les deux
-- normal que ce soit à 10-13 et pas 10-15 (on regarde en erreur relative!!!!!!!!)
-- faire un test pour les densités (éloignés de 0....)
-
-
-- nom des fichiers snake case
 - vérifier que les formules sont valides pour différents temps
 - enlever les TBD (Ctrl+F)
 - regarder les todo
-- implement itm, atm
 - BG prices with T
-- 3.corriger le nom alpha_m dans proj pour BG, CGMY CMGY nom du module et nom de la classe
+- corriger le nom alpha_m dans proj pour BG, CGMY CMGY nom du module et nom de la classe
 
