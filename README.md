@@ -59,7 +59,7 @@ Examples can be found in the ```numerical_experiment``` folder or in the test fo
 
 The class ```TSDensity``` enables to evaluate the series representation given in proposition ...
 <p align="center">
-  <img src="images/densities.png" width="30%" style="margin: 2px;">
+  <img src="images/densities.png" width="50%" style="margin: 2px;">
 </p>
 
 
@@ -70,12 +70,12 @@ _The image was generated with the code_ ```numerical_experiment/densities.py```.
 As in the toy example, here is a visual comparison between PROJ method and our series expansion. 
 
 <p align="center">
-  <img src="images/call_0.05.png" width="30%" style="margin: 2px;">
-  <img src="images/call_0.1.png" width="30%" style="margin: 2px;">
+  <img src="images/call_0.05.png" width="40%" style="margin: 2px;">
+  <img src="images/call_0.1.png" width="40%" style="margin: 2px;">
 </p>
 <p align="center">
-  <img src="images/call_0.2.png" width="30%" style="margin: 2px;">
-  <img src="images/call_0.5.png" width="30%" style="margin: 2px;">
+  <img src="images/call_0.2.png" width="40%" style="margin: 2px;">
+  <img src="images/call_0.5.png" width="40%" style="margin: 2px;">
 </p>
 
 A detailed numerical analysis of the three pricers (propositions ...,... and ...) is sum up in the following figure:
