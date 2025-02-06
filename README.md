@@ -1,4 +1,10 @@
-# Option pricing with Mellin series under Tempered Stable process 
+<p align="center">
+  <img src="images/title.png" width="100%" style="margin: 2px;">
+</p>
+
+
+---
+<!-- # Option pricing with Mellin series under Tempered Stable process  -->
 
 [![Python badge](https://img.shields.io/badge/Python-3.11.11-0066cc?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/downloads/release/python-31111/)
 [![Pylint badge](https://img.shields.io/badge/Linting-pylint-brightgreen?style=for-the-badge)](https://pylint.pycqa.org/en/latest/)
