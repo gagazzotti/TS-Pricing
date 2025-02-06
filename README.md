@@ -100,8 +100,8 @@ Two set of tests can be run to check whether pricers are correctly working: shor
 The short version is a comparison to one specific PROJ price with ground truth data being hard coded. 
 Complete version check the computed prices for a range of strike and maturity. To run them, the following commands can be execute:
 ```bash
-python -m tests.complete.test_suite
-python -m tests.quick.test_suite
+$ python -m tests.complete.test_suite
+$ python -m tests.quick.test_suite
 ```
 
 ## Interesting ? 
