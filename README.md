@@ -11,9 +11,7 @@
 [![Ruff format badge](https://img.shields.io/badge/Formatter-Ruff-000000?style=for-the-badge)](https://docs.astral.sh/ruff/formatter/)
 
 The code allows to calibrate to price European options with Mellin expansion technique. 
-It is the implementation of this paper.
-
-...
+It is the implementation of the paper: "Fast and explicit European option pricing under tempered stable processes".
 
 ## Installation
 A script is available for an easy creation of the conda environment and compilation of auxiliary functions:
@@ -114,14 +112,4 @@ If you use it, a reference to the paper would be highly appreciated.
 [![Ubuntu badge](https://img.shields.io/badge/Ubuntu-24.04-cc3300?style=for-the-badge&logo=ubuntu)](https://www.releases.ubuntu.com/24.04/)
 [![Conda badge](https://img.shields.io/badge/conda-24.9.2-339933?style=for-the-badge&logo=anaconda)](https://docs.conda.io/projects/conda/en/24.9.x/)
 [![Intel badge](https://img.shields.io/badge/CPU-%20i5_10210U%201.60GHZ-blue?style=for-the-badge&logo=intel)](https://www.intel.com/content/www/us/en/products/sku/195436/intel-core-i510210u-processor-6m-cache-up-to-4-20-ghz/specifications.html)
-
-
-## Todo
-
-- do the short time behaviour
-- vérifier que les formules sont valides pour différents temps
-- enlever les TBD (Ctrl+F)
-- regarder les todo
-- BG prices with T
-- corriger le nom alpha_m dans proj pour BG, CGMY CMGY nom du module et nom de la classe
 
