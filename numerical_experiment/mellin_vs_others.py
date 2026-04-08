@@ -19,7 +19,9 @@ from fypy.termstructures.DiscountCurve import DiscountCurve_ConstRate
 from fypy.termstructures.EquityForward import EquityForward
 
 from src.mellin_ts.pricers.bg_pricer import BGPricer
-from src.mellin_ts.pricers.onesidedts_pricer import OneSidedTemperedStablePricer
+from src.mellin_ts.pricers.onesidedtsnegative_pricer import (
+    OneSidedTemperedStablePricerNegative as OneSidedTemperedStablePricer,
+)
 
 # from matplotlib.ticker import FuncFormatter
 # import time
@@ -40,10 +42,10 @@ def main():
         lambda_m=0.4,
     )
     ts_p_params = dict(
-        alpha_p=0.44,
+        alpha_p=0.0,
         beta_p=0.1 + np.exp(1) / 10,
         lambda_p=1.4,
-        alpha_m=0,
+        alpha_m=0.35,
         beta_m=0.5 - np.pi / 100,
         lambda_m=0.4,
     )
@@ -67,14 +69,14 @@ def main():
     option_params = dict(S0=1, K=strike, r=0.02, q=0.05, ttm=ttm)
     # mellin ts
     mellin_time_ts = get_time_mellin_ts(option_params, ts_params, eps_ts)
-    proj_time_ts = get_time_proj_ts(
-        option_params, ts_params, eps_ts, one_sided=False)
+    proj_time_ts = get_time_proj_ts(option_params, ts_params, eps_ts, one_sided=False)
     df_ts = pd.concat([mellin_time_ts, proj_time_ts], axis=1)
     # mellin ts p
+    option_params_m = dict(S0=1, K=1, r=0.02, q=0.05, ttm=ttm)
     proj_time_ts_p = get_time_proj_ts(
-        option_params, ts_p_params, eps_ts_p, one_sided=True
+        option_params_m, ts_p_params, eps_ts_p, one_sided=True
     )
-    mellin_time_ts_p = get_time_mellin_ts_p(option_params, eps_ts_p)
+    mellin_time_ts_p = get_time_mellin_ts_p(option_params_m, eps_ts_p)
     df_ts_p = pd.concat([mellin_time_ts_p, proj_time_ts_p], axis=1)
     # mellin bg
     proj_time_ts_p = get_time_proj_bg(option_params, bg_params_proj, eps_ts_p)
@@ -121,17 +123,17 @@ def get_time_proj_ts(option_params: dict, ts_params: dict, eps: list, one_sided=
     """TBD"""
     # print("-----")
     if one_sided:
-        proj_price_ref = 0.18769860488549217
+        proj_price_ref = 0.21012736629561923
         alpha_list = [np.nan, 7.5, 8.5, 10, 12.5]
+        alpha_list = [np.nan, 20, 25, 35, 40]
+
     else:
         proj_price_ref = 0.22968572289948497
         alpha_list = [np.nan, 25, 30, 40, 50]
 
-    comp_time = {error: {str(alpha): 0 for alpha in alpha_list}
-                 for error in eps}
+    comp_time = {error: {str(alpha): 0 for alpha in alpha_list} for error in eps}
     fwd, disc_curve = get_proj_curves(option_params)
-    model = TemperedStable(
-        forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
+    model = TemperedStable(forwardCurve=fwd, discountCurve=disc_curve, **ts_params)
     logN_max = 20
     for error in tqdm.tqdm(eps):
         for alpha in alpha_list:
@@ -162,11 +164,9 @@ def get_time_proj_ts(option_params: dict, ts_params: dict, eps: list, one_sided=
 def get_time_proj_bg(option_params: dict, bg_params: dict, eps: list):
     proj_price_ref = 0.2599191174562806
     alpha_list = [np.nan, 25, 30, 40, 50]
-    comp_time = {error: {str(alpha): 0 for alpha in alpha_list}
-                 for error in eps}
+    comp_time = {error: {str(alpha): 0 for alpha in alpha_list} for error in eps}
     fwd, disc_curve = get_proj_curves(option_params)
-    model = BilateralGamma(
-        forwardCurve=fwd, discountCurve=disc_curve, **bg_params)
+    model = BilateralGamma(forwardCurve=fwd, discountCurve=disc_curve, **bg_params)
     logN_max = 20
     for error in tqdm.tqdm(eps):
         for alpha in alpha_list:
@@ -238,11 +238,12 @@ def get_time_mellin_bg(option_params: dict, bg_params: dict, eps: dict):
 def get_time_mellin_ts_p(option_params: dict, eps: dict):
     """TBD"""
     params = dict(
-        alpha_p=0.44,
-        beta_p=0.1 + np.exp(1) / 10,
-        lambda_p=1.4,
+        alpha_p=0.35,
+        beta_p=0.5 - np.pi / 100,
+        lambda_p=0.4,
     )
-    proj_price_ref = 0.18769860488549217
+
+    proj_price_ref = 0.21012736629561923
     ts_pricer = OneSidedTemperedStablePricer(**params)
     # nmax = 60
     nmax = 60
